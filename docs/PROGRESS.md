@@ -301,3 +301,82 @@ project. Confirmed:
 
 Milestone 1 is now complete **and confirmed live**. Nothing further required
 here; foundations are ready for Milestone 2.
+
+---
+
+## Milestone 2 — Motion & design-system foundation — 2026-07-11
+
+Built inside the existing scaffold; migrations, `_PURPOSE.md` files, security
+model, and architecture untouched. Full design docs in `docs/DESIGN_SYSTEM.md`.
+
+### Completed
+- **Design tokens → Tailwind v4 theme.** `src/app/globals.css` `@theme` projects
+  `src/config/design-tokens.ts`: colour palette, `font-sans`/`font-serif`,
+  radii, shadows. Plus z-index CSS variables (`--z-*`), base styles, a global
+  `:focus-visible` ring, and a reduced-motion backstop. Token categories
+  covered: typography, spacing, colours, radii, shadows, container widths,
+  z-index (per requirement).
+- **Utilities:** `lib/utilities/cn.ts` (clsx + tailwind-merge) and
+  `lib/utilities/money.ts` (`formatPaise` paise→₹ with lakh grouping,
+  `discountPercent`), each unit-tested.
+- **Motion primitives** (`src/components/motion/`, all `motion/react`, all
+  reduced-motion aware via `useReducedMotion`): `FadeIn`, `SlideUp`,
+  `RevealOnScroll`, `StaggerContainer`/`StaggerItem`, `ScaleOnHover`,
+  `PageTransition`, `AnimatedCounter`, `AnimatedModal`, `AnimatedDrawer`,
+  `AnimatedCartItem` + a shared `motion-config` and barrel `index.ts`.
+- **UI primitives** (`src/components/ui/`): `Button` (5 variants/3 sizes,
+  loading), `Badge`, `Price`, `Card`, `Container`, `Skeleton`, `Label`,
+  `Input`, `Textarea`, `Select` (ref-forwarded, `invalid` states), `FormError`
+  (`role="alert"`), `EmptyState`, `Dialog`, `Drawer` (portalled,
+  backdrop/Escape dismiss, scroll-lock, focus-to-panel), `ToastProvider` +
+  `useToast`, an inline `icons` set, and a barrel `index.ts`.
+- **Storefront layout foundation:** `AnnouncementBar`, `Header` (+
+  `MobileDrawerNav`), `Footer` (+ `NewsletterForm` foundation), composed in
+  `app/(storefront)/layout.tsx` (also hosts `ToastProvider`); nav in
+  `src/config/navigation.ts`.
+- **Homepage replaced:** removed the temporary root `src/app/page.tsx`; new
+  `app/(storefront)/page.tsx` is a refined foundation (hero, shop-by-category
+  tiles, reassurance strip, editorial band) using tokens + motion. No mock
+  product data — real catalogue is Milestone 4.
+- **Admin shell + login:** `app/admin/layout.tsx` (route-group shell with the
+  `requireAdmin()` M10 integration point documented in-file), `AdminShell` +
+  `AdminSidebar` chrome, `app/admin` placeholder dashboard, and
+  `app/admin/login` — a **complete secure login UI shell** (`AdminLoginForm`,
+  react-hook-form + shared Zod schema, generic errors, disable-on-submit,
+  12-char rule, `aria` wiring). Auth is intentionally **not** wired: the
+  `signInAdmin` server action validates input server-side and documents the
+  exact Milestone 10 integration steps (Supabase Auth + `requireAdmin` +
+  rate-limit + audit + redirect allow-list). `/admin/login` now returns 200
+  (previously 404).
+- **Docs:** created `docs/DESIGN_SYSTEM.md`; recorded Decisions #25–33.
+
+### Verification performed
+- Commands (all exit 0): `npm run lint`, `npm run type-check`,
+  `npm run test` (**3 files, 15 tests** — config + money + cn),
+  `npm run build`, `npm run format:check`.
+- Runtime smoke test (`next start`): `GET /` → **200** (hero "Quietly
+  premium", "Shop by category" rendered), `GET /admin/login` → **200**
+  (form: "Store administration", "Password", "Sign in"), `GET /admin` → **200**
+  (shell). Server stopped afterward.
+- One lint finding fixed mid-milestone: `react-hooks/set-state-in-effect` on the
+  portal mount gate → rewrote `useMounted` with `useSyncExternalStore`
+  (Decision #33).
+
+### Known limitations / deferred (by design)
+- **Admin auth not functional** — secure shell only; wired in Milestone 10
+  (Decision #30). `/admin` shell is reachable without auth but exposes no live
+  data or mutations.
+- Global `not-found.tsx` / `error.tsx`, security headers, and the rate limiter
+  are **Milestone 3** (not in M2 scope).
+- Newsletter signup is UI-only (toast ack, no backend — Decision #32).
+- Full focus-trapping, keyboard-nav audit, and contrast verification are the
+  **Milestone 15** accessibility pass; M2 primitives are built to accept it.
+- Category/other storefront links resolve to routes built in later milestones
+  (they 404 until then — expected).
+
+### Remaining Phase 1 tasks
+- Milestone 3 (storefront shell hardening): `(storefront)` error boundary +
+  `not-found.tsx` + `error.tsx`, central security headers in
+  `next.config.ts`/middleware, and `lib/security/rate-limit.ts`.
+- Milestones 4–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
+- **Awaiting user go-ahead before starting Milestone 3.**

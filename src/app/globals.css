@@ -1,13 +1,61 @@
 @import 'tailwindcss';
 
 /*
- * Milestone 0 baseline only. The full design-token → Tailwind theme mapping
- * (colours, type scale, spacing, radii, shadows, container widths, z-index)
- * is wired here via an `@theme` block in Milestone 2, sourced from
- * src/config/design-tokens.ts. Kept intentionally minimal for now.
+ * Design tokens → Tailwind theme (Tailwind v4 CSS-first `@theme`).
+ *
+ * These values are the Tailwind projection of `src/config/design-tokens.ts`,
+ * which remains the canonical TypeScript source for non-Tailwind consumers
+ * (motion, inline styles, JSON-LD). Keep the two in sync — the palette,
+ * radii, and shadows here mirror that file. Utilities generated:
+ *   colours  → bg-ink / text-slate / border-fog / bg-accent …
+ *   fonts    → font-sans / font-serif
+ *   radii    → rounded-sm/md/lg/xl
+ *   shadows  → shadow-sm/md/lg
  */
+@theme {
+  /* Neutral fashion palette (STUDIO NOIR placeholder) + one restrained accent */
+  --color-ink: #141414;
+  --color-charcoal: #2b2b2b;
+  --color-slate: #5f5f5f;
+  --color-mist: #9a9a9a;
+  --color-fog: #e4e1dc;
+  --color-paper: #f7f6f3;
+  --color-accent: #8a6a4f;
+  --color-accent-hover: #75593f;
+  --color-accent-contrast: #ffffff;
+  --color-success: #2f6f4f;
+  --color-warning: #9a7b1f;
+  --color-danger: #9a3324;
 
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+
+  /* Softer, premium radii (mirror design-tokens.radius) */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Subtle, low-contrast shadows (mirror design-tokens.shadow) */
+  --shadow-sm: 0 1px 2px 0 rgb(20 20 20 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(20 20 20 / 0.08);
+  --shadow-lg: 0 12px 32px -8px rgb(20 20 20 / 0.14);
+}
+
+/*
+ * z-index layers — kept as CSS variables (Tailwind has no z-index theme
+ * namespace) so overlays never collide. Use via `z-(--z-modal)` /
+ * arbitrary `z-[var(--z-modal)]`. Mirrors design-tokens.zIndex.
+ */
 :root {
+  --z-dropdown: 100;
+  --z-header: 200;
+  --z-drawer: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-toast: 600;
+
   color-scheme: light;
 }
 
@@ -17,14 +65,29 @@ html {
 }
 
 body {
-  background-color: #f7f6f3; /* design-tokens.colors.paper */
-  color: #141414; /* design-tokens.colors.ink */
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Honour reduced-motion globally as a safety net; motion primitives also gate
-   individually via useReducedMotion (Milestone 2). */
+/* Consistent, visible focus for keyboard users across all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/*
+ * Global reduced-motion safety net. Motion primitives ALSO gate individually
+ * via `useReducedMotion` (motion/react); this catches any CSS transition or
+ * third-party animation not covered by a primitive.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
