@@ -116,3 +116,109 @@ notes and `.gitkeep` files are untouched.
   and the manual admin-creation script.
 - Milestones 2–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
 - **Awaiting user go-ahead before starting Milestone 1.**
+
+---
+
+## Milestone 1 — Supabase foundation — 2026-07-11
+
+Built inside the existing scaffold (`supabase/migrations`, `supabase/seed`,
+`src/lib/supabase`, `src/types`). No folders moved; `_PURPOSE.md` notes intact.
+
+### Completed
+- **8 numbered SQL migrations** in `supabase/migrations/`, implementing every
+  table in `DATABASE_SCHEMA.md` in dependency order:
+  - `0001_foundation.sql` — enum types (`order_status`, `payment_method`,
+    `payment_status`, `inventory_reason`, `shipment_provider`) + the shared
+    `set_updated_at()` trigger function. UUID v4 via `gen_random_uuid()`
+    (core Postgres 13+, no pgcrypto needed).
+  - `0002_admin_identity.sql` — `admin_profiles` (1:1 with `auth.users`, role
+    NOT from client metadata) + `is_active_admin()` — a `STABLE SECURITY
+    DEFINER`, `search_path`-pinned predicate reused by every admin RLS policy.
+  - `0003_catalogue.sql` — `categories`, `products`, `product_images`,
+    `product_options`, `product_option_values`, `product_variants`,
+    `variant_option_values`, with all indexes and constraints from the spec
+    (unique slugs/SKUs, one-primary-image partial index, `compare_at >
+    base` check, `stock_quantity >= 0` check).
+  - `0004_inventory.sql` — append-only `inventory_transactions` ledger +
+    **`reserve_variant_stock()`** and **`release_variant_stock()`**
+    (`SECURITY DEFINER`, `SELECT … FOR UPDATE` row lock, atomic
+    decrement/increment + ledger write; raise `INSUFFICIENT_STOCK` /
+    `VARIANT_INACTIVE` / `VARIANT_NOT_FOUND`). Execute granted to
+    `service_role` only.
+  - `0005_customers_carts.sql` — `customers`, `addresses`, `carts`,
+    `cart_items`.
+  - `0006_store_settings.sql` — `store_settings` (admin-only) + the
+    `public_store_settings` view exposing only the safe key subset.
+  - `0007_webhooks_audit.sql` — `webhook_events` (unique `event_id`
+    idempotency guard) + `admin_audit_logs`.
+  - `0008_orders_payments_shipments.sql` — `orders` (race-free `SN-0001`
+    numbers via a sequence default), immutable `order_items` snapshots,
+    `payments` (partial-unique `razorpay_payment_id`), `shipments`. FKs use
+    `ON DELETE RESTRICT` for anything referenced by historical
+    orders/payments; `CASCADE`/`SET NULL` only for genuinely dependent rows.
+- **RLS enabled on every table in the same migration that creates it** —
+  static audit confirms **20 tables ↔ 20 `enable row level security`**
+  (1:1), 27 policies. Public/anon: read-only, `is_active = true` catalogue +
+  the public settings view. Orders/payments/addresses/carts: no direct
+  anon/authenticated SELECT (server/service-role only); active-admin SELECT
+  for support. Admin CRUD gated on `is_active_admin()` (defense in depth
+  alongside the TypeScript service layer).
+- **Supabase client wrappers** (`src/lib/supabase/`): `config.ts` (validated
+  public connection values), `client.ts` (browser/anon), `server.ts`
+  (cookie-bound server client), `admin.ts` (service-role, **`import
+  'server-only'` build guard** so it can never enter a client bundle;
+  `persistSession:false`). All typed with the `Database` generic.
+- **`src/types/database.ts`** — full typed schema (tables Row/Insert/Update,
+  the view, the three functions' Args/Returns, all enums) hand-authored to
+  match the migrations, plus `Tables`/`TablesInsert`/`TablesUpdate`/`Enums`
+  helper generics. Regenerate via `npm run db:types` once the project is
+  linked (see Decision #15).
+- **Seed script** (`supabase/seed/seed.ts`, `npm run seed`): idempotent
+  upserts of default `store_settings` (₹79 flat / free over ₹1,999 / COD on /
+  provider `manual`), 4 categories, and **8 products** (each Size × Colour →
+  variants; well under the 20 cap, which the script also asserts at runtime).
+- **Admin creation script** (`supabase/seed/create-admin.ts`,
+  `npm run create-admin -- --email …`): service-role creation of the auth
+  user + `admin_profiles` row, **password prompted interactively and masked**
+  (never a CLI arg), 12-char minimum enforced.
+- **Tooling**: added `seed` / `create-admin` / `db:types` npm scripts and
+  deps `server-only`, `dotenv`, `tsx` (dev). `npm audit` → 0 vulnerabilities.
+
+### Verification performed
+- Commands run (all exit 0): `npm install` (0 vulns), `npm run lint`,
+  `npm run type-check` (`tsc --noEmit`), `npm run test` (5 passed),
+  `npm run build` (`/` + `/_not-found` prerendered), `npm run format:check`.
+- **Static SQL audit** (no local Postgres/Docker available to apply live):
+  20 `create table` ↔ 20 `enable row level security` (1:1), 27 policies,
+  balanced `$$` dollar-quoting across the 4 functions.
+- `.env.example` verified — the only vars M1 code references
+  (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`) are all already declared. No changes needed.
+
+### Known limitations
+- **Migrations not applied to a live database.** Creating the Supabase
+  project, `supabase db push`, creating the `product-images` Storage bucket
+  (+ its admin-only write policy), running the seed/admin scripts, and
+  regenerating `database.ts` from the live schema are all **external steps**
+  requiring real credentials — see `docs/SUPABASE_SETUP.md`. No Postgres
+  engine is available in this environment to apply/validate SQL at runtime,
+  so validation was static only.
+- `database.ts` is hand-authored (Decision #15); it must be regenerated with
+  `npm run db:types` after the project is linked and re-checked against these
+  migrations.
+- Storage bucket RLS policy (admin-only INSERT/UPDATE/DELETE referencing
+  `admin_profiles`) is specified in `SUPABASE_SETUP.md` but is a
+  dashboard/CLI step, not in these migrations yet — to be added when the
+  bucket is created.
+- No application logic consumes the DB yet (product fetchers, cart validation,
+  order creation) — those are Milestones 4+.
+
+### Remaining Phase 1 tasks
+- **External Supabase setup** (owner action, per `SUPABASE_SETUP.md`): create
+  project → set env vars in `.env.local` → `supabase db push` → create Storage
+  bucket + policy → `npm run db:types` → `npm run seed` → `npm run create-admin`.
+- Milestone 2 (motion & design-system foundation) next in code: wire design
+  tokens into the Tailwind theme, motion tokens, motion primitives, and the
+  core `ui/` primitives.
+- Milestones 3–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
+- **Awaiting user go-ahead before starting Milestone 2.**

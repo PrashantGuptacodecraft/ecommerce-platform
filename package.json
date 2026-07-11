@@ -13,7 +13,10 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "seed": "tsx supabase/seed/seed.ts",
+    "create-admin": "tsx supabase/seed/create-admin.ts",
+    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -25,6 +28,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.81.0",
+    "server-only": "^0.0.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -36,11 +40,13 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.3",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.0",
     "eslint-config-next": "^16.2.10",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.5",
     "tailwindcss": "^4.3.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   },
