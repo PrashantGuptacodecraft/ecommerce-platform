@@ -274,9 +274,30 @@ now brought under version control **without modifying 0001–0008**.
   owner applies it against the linked project.
 
 ### Known limitations
-- Not yet applied to the live database in this environment (external step — the
-  apply command is provided in the handoff below).
 - `image/avif` is accepted at the bucket level but `src/config/site.ts`
   `upload.acceptedImageTypes` still lists only `jpeg/png/webp`; reconcile in
   Milestone 11 if AVIF uploads are wanted app-side (Decision #23). App-layer
   validation remains the primary upload gate.
+
+---
+
+## Milestone 1 — External Supabase setup — VERIFIED LIVE — 2026-07-11
+
+The owner completed and verified the external setup against the linked Supabase
+project. Confirmed:
+
+- **Migrations 0001–0009 applied successfully** to the live database.
+- **`product-images` bucket exists**; its **four `storage.objects` policies are
+  active** (public read + admin insert/update/delete).
+- **Live database types generated** — `src/types/database.ts` is now the
+  official `supabase gen types` output (replaces the hand-authored stand-in
+  from Decision #15). `tsc --noEmit` passes against it; the file is now
+  Prettier-ignored as generated/tool-owned (source of truth = migrations, DB;
+  regenerate via `npm run db:types`).
+- **Seed completed** — 8 products with variants + default `store_settings`.
+- **Admin created** — Supabase Auth user + verified `admin_profiles` record.
+- **App state:** homepage still shows the Milestone 0 placeholder;
+  `/admin/login` returns 404 (route not implemented yet — expected pre-M2).
+
+Milestone 1 is now complete **and confirmed live**. Nothing further required
+here; foundations are ready for Milestone 2.
