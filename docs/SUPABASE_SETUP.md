@@ -27,15 +27,31 @@ back it with a migration file so the schema stays reproducible.
 
 ## 3. Storage bucket
 
-Create a public bucket (e.g. `product-images`) for product photography.
+The `product-images` bucket and its policies are **managed by a migration** —
+`supabase/migrations/0009_product_image_storage.sql`. Applying migrations
+(step 2, `supabase db push`) creates the bucket and its RLS policies; there is
+**no manual dashboard step**. Do not hand-create it in the dashboard — that
+would drift from version control.
 
-- Public `SELECT` (read) — allowed for anyone (storefront needs to render
-  images).
-- `INSERT` / `UPDATE` / `DELETE` — restricted to authenticated users whose
-  `admin_profiles.role = 'admin' AND is_active = true` (via a Storage RLS
-  policy referencing that table, not just "any authenticated user").
-- Enforce file size and MIME allow-list at the application layer before
-  upload, in addition to whatever bucket-level limits Supabase offers.
+The migration configures:
+
+- Bucket `product-images`: public, `file_size_limit` 5 MB, `allowed_mime_types`
+  `image/jpeg, image/png, image/webp, image/avif`. Re-running the migration
+  upserts these limits (idempotent).
+- Public `SELECT` (read) — allowed for anyone from this bucket only (storefront
+  needs to render images).
+- `INSERT` / `UPDATE` / `DELETE` on `storage.objects` — restricted to
+  authenticated users for whom `public.is_active_admin()` is true (i.e.
+  `admin_profiles.role = 'admin' AND is_active = true`), and scoped to
+  `bucket_id = 'product-images'`. Unauthenticated writes are never allowed.
+- The migration does not disable RLS on `storage.objects` and does not touch
+  any other bucket's policies.
+
+Application-layer defence in depth (still required, enforced in the admin
+uploader): validate file size and MIME **and file signature (magic bytes)**
+server-side before upload, and regenerate the storage filename (uuid + ext) —
+see `docs/SECURITY_MODEL.md` §4. The bucket-level `file_size_limit` /
+`allowed_mime_types` are a backstop, not the primary gate.
 
 ## 4. Seed data
 

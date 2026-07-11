@@ -80,9 +80,16 @@ table is never created "temporarily without RLS." See
   to resolve to an active `admin_profiles` row — enforced both in RLS
   policies (defense in depth) and in the TypeScript service layer
   (primary gate).
-- Storage bucket for product images: public `SELECT`; `INSERT/UPDATE/DELETE`
-  gated by the same admin check via a Storage RLS policy referencing
-  `admin_profiles`.
+- Storage bucket for product images (`product-images`): public `SELECT`;
+  `INSERT/UPDATE/DELETE` gated by the same admin check via Storage RLS policies
+  on `storage.objects` calling `public.is_active_admin()` (which resolves
+  `auth.uid()` → an active `admin_profiles` row) and scoped to
+  `bucket_id = 'product-images'`. Defined and version-controlled in
+  `supabase/migrations/0009_product_image_storage.sql`, not hand-created in the
+  dashboard. The bucket also enforces a 5 MB `file_size_limit` and a MIME
+  allow-list (`image/jpeg, image/png, image/webp, image/avif`) as a backstop;
+  the primary upload gate remains the application-layer MIME + magic-byte +
+  size validation in §4. RLS on `storage.objects` is never disabled.
 
 ## 4. Application security baseline
 

@@ -206,19 +206,77 @@ Built inside the existing scaffold (`supabase/migrations`, `supabase/seed`,
 - `database.ts` is hand-authored (Decision #15); it must be regenerated with
   `npm run db:types` after the project is linked and re-checked against these
   migrations.
-- Storage bucket RLS policy (admin-only INSERT/UPDATE/DELETE referencing
-  `admin_profiles`) is specified in `SUPABASE_SETUP.md` but is a
-  dashboard/CLI step, not in these migrations yet — to be added when the
-  bucket is created.
+- Storage bucket RLS policy — **now resolved:** the `product-images` bucket and
+  its `storage.objects` policies are managed by migration `0009` (see the M1
+  addendum below), no longer a manual dashboard step.
 - No application logic consumes the DB yet (product fetchers, cart validation,
   order creation) — those are Milestones 4+.
 
 ### Remaining Phase 1 tasks
 - **External Supabase setup** (owner action, per `SUPABASE_SETUP.md`): create
-  project → set env vars in `.env.local` → `supabase db push` → create Storage
-  bucket + policy → `npm run db:types` → `npm run seed` → `npm run create-admin`.
+  project → set env vars in `.env.local` → `supabase db push` (now also creates
+  the Storage bucket + policies via migration 0009) → `npm run db:types` →
+  `npm run seed` → `npm run create-admin`.
 - Milestone 2 (motion & design-system foundation) next in code: wire design
   tokens into the Tailwind theme, motion tokens, motion primitives, and the
   core `ui/` primitives.
 - Milestones 3–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
 - **Awaiting user go-ahead before starting Milestone 2.**
+
+---
+
+## Milestone 1 (addendum) — Product image Storage migration (0009) — 2026-07-11
+
+Migrations 0001–0008 confirmed applied to the live database by the owner. The
+`product-images` Storage bucket was found to be unmanaged by the repo, so it is
+now brought under version control **without modifying 0001–0008**.
+
+### Completed
+- **`supabase/migrations/0009_product_image_storage.sql`** (new; 0001–0008
+  untouched):
+  - Upserts the `product-images` bucket: `public = true`, `file_size_limit`
+    5 MB (`5242880`), `allowed_mime_types`
+    `{image/jpeg, image/png, image/webp, image/avif}`. Bucket upsert
+    (`on conflict (id) do update`) is idempotent and also corrects limits if
+    the bucket was pre-created in the dashboard.
+  - Four RLS policies on `storage.objects`, each idempotent via
+    `drop policy if exists "<name>" … / create policy "<name>" …` (Postgres has
+    no `CREATE POLICY IF NOT EXISTS`), touching only the four policies this
+    migration owns:
+    - `product_images_public_read` — `SELECT` to `public`,
+      `using (bucket_id = 'product-images')`.
+    - `product_images_admin_insert` — `INSERT` to `authenticated`,
+      `with check (bucket_id = 'product-images' and public.is_active_admin())`.
+    - `product_images_admin_update` — `UPDATE` to `authenticated`, bucket +
+      admin check in **both** `using` and `with check`.
+    - `product_images_admin_delete` — `DELETE` to `authenticated`,
+      `using (bucket_id = 'product-images' and public.is_active_admin())`.
+  - Reuses the **existing** helper from 0002 — signature reconfirmed before
+    writing: `public.is_active_admin()` is **zero-argument**, `returns boolean`,
+    `stable security definer`, called here with no arguments.
+- **Safety properties:** RLS on `storage.objects` is never disabled; no existing
+  policy is dropped or weakened (only the four named policies are managed); no
+  unauthenticated INSERT/UPDATE/DELETE path; the service-role key is never
+  referenced (service_role bypasses RLS at the connection level).
+- **Docs updated:** `SUPABASE_SETUP.md` §3 (bucket now migration-managed, no
+  dashboard step), `SECURITY_MODEL.md` §3 (storage bullet reflects
+  `is_active_admin()` + bucket scope + MIME/size backstop), `DECISIONS.md`
+  (#22 migration-managed bucket, #23 AVIF-vs-`site.ts` MIME note, #24
+  idempotency pattern), and this addendum.
+
+### Verification performed
+- Commands run (all exit 0): `npm run lint`, `npm run type-check`,
+  `npm run test` (5 passed), `npm run build`, `npm run format:check`.
+- Static review of the SQL: policy names unique within the migration; bucket
+  upsert idempotent; `is_active_admin()` called with the confirmed zero-arg
+  signature; INSERT/UPDATE both validate `bucket_id = 'product-images'`. No
+  local Postgres engine available, so no live apply in this environment — the
+  owner applies it against the linked project.
+
+### Known limitations
+- Not yet applied to the live database in this environment (external step — the
+  apply command is provided in the handoff below).
+- `image/avif` is accepted at the bucket level but `src/config/site.ts`
+  `upload.acceptedImageTypes` still lists only `jpeg/png/webp`; reconcile in
+  Milestone 11 if AVIF uploads are wanted app-side (Decision #23). App-layer
+  validation remains the primary upload gate.

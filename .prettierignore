@@ -6,6 +6,8 @@ coverage
 playwright-report
 test-results
 package-lock.json
+supabase/.temp
+supabase/.branches
 
 # Hand-authored / tool-owned files Prettier should not reformat:
 # - Markdown docs (planning docs, README, per-folder _PURPOSE.md scaffold notes)
