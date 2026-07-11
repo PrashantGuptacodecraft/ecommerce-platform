@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/*
+ * Milestone 0 baseline only. The full design-token → Tailwind theme mapping
+ * (colours, type scale, spacing, radii, shadows, container widths, z-index)
+ * is wired here via an `@theme` block in Milestone 2, sourced from
+ * src/config/design-tokens.ts. Kept intentionally minimal for now.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background-color: #f7f6f3; /* design-tokens.colors.paper */
+  color: #141414; /* design-tokens.colors.ink */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Honour reduced-motion globally as a safety net; motion primitives also gate
+   individually via useReducedMotion (Milestone 2). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
