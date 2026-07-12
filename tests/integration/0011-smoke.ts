@@ -153,7 +153,7 @@ async function runSmokeTests() {
   console.log('✅ Finalized image 1 successfully via service_role')
 
   let productAfter = await serviceClient.from('products').select('updated_at').eq('id', productId).single()
-  if (productBefore.data.updated_at === productAfter.data.updated_at) {
+  if (productBefore.data?.updated_at === productAfter.data?.updated_at) {
     throw new Error('Product updated_at did not change after finalization')
   }
 
@@ -180,7 +180,7 @@ async function runSmokeTests() {
   const primariesAfterAdd = imagesAfterAdd?.filter(i => i.is_primary)
   if (primariesAfterAdd?.length !== 1) throw new Error(`Expected exactly 1 primary image, got ${primariesAfterAdd?.length}`)
 
-  // 5. Update / Reorder Images
+  // 4. Update Images Transaction (Reorder & change primary)
   productBefore = await serviceClient.from('products').select('updated_at').eq('id', productId).single()
   const updatePayload = [
     { image_id: image1Id, sort_order: 1, is_primary: false, alt_text: 'Updated alt 1' },
@@ -188,7 +188,7 @@ async function runSmokeTests() {
   ]
   const { data: updateData, error: updateError } = await activeAdminClient.rpc('update_product_images_transaction', {
     p_product_id: productId,
-    p_expected_product_updated_at: productBefore.data.updated_at,
+    p_expected_product_updated_at: productBefore.data?.updated_at,
     p_payload_version: 1,
     p_payload: updatePayload,
     p_idempotency_key: crypto.randomUUID()
@@ -254,7 +254,7 @@ async function runSmokeTests() {
   let catBefore = await serviceClient.from('categories').select('updated_at').eq('id', categoryId).single()
   const { error: catUpdateError } = await activeAdminClient.rpc('save_category_transaction', {
     p_category_id: categoryId,
-    p_expected_updated_at: catBefore.data.updated_at,
+    p_expected_updated_at: catBefore.data?.updated_at,
     p_payload_version: 1,
     p_payload: {
       name: `Test Cat ${ts} Updated`,

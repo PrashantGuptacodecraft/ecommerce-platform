@@ -22,7 +22,7 @@ function generateNonce(): string {
   return btoa(binary)
 }
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const isProd = process.env.NODE_ENV === 'production'
   const nonce = generateNonce()
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
