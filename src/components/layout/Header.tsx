@@ -9,7 +9,7 @@ import { brand } from '@/config/brand'
 import { mainNav } from '@/config/navigation'
 
 const iconButton =
-  'inline-flex size-10 items-center justify-center rounded-md text-charcoal transition-colors hover:bg-ink/5'
+  'inline-flex size-11 items-center justify-center rounded-md text-charcoal transition-colors hover:bg-ink/5'
 
 /**
  * Sticky storefront header: mobile menu trigger + wordmark + desktop nav +

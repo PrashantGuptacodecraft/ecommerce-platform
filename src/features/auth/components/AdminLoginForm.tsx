@@ -10,12 +10,17 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { FormError } from '@/components/ui/FormError'
 
+type AdminLoginFormProps = {
+  /** Validated server-side before use; safe fallback applied there. */
+  next?: string
+}
+
 /**
- * Secure admin login form (client). Validated with the shared Zod schema
- * (client + server). Errors are generic; the form disables on submit. Session
- * establishment is wired in Milestone 10 — see `signInAdmin`.
+ * Functional admin login form. Client-side validation mirrors the server Zod
+ * schema; on success the server action establishes the session and redirects.
+ * All server errors are generic (no account enumeration).
  */
-export function AdminLoginForm() {
+export function AdminLoginForm({ next }: AdminLoginFormProps) {
   const emailId = useId()
   const passwordId = useId()
   const [formError, setFormError] = useState<string | null>(null)
@@ -31,11 +36,11 @@ export function AdminLoginForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null)
-    const result = await signInAdmin(values)
-    if (!result.ok) {
+    // On success this redirects server-side and never returns a value.
+    const result = await signInAdmin({ ...values, next })
+    if (result?.ok === false) {
       setFormError(result.error)
     }
-    // On success (Milestone 10): redirect to the allow-listed `next` path.
   })
 
   return (

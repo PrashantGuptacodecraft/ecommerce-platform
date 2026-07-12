@@ -202,3 +202,35 @@ schema rewrite, just a new nullable FK relationship already planned for in
   enforced at upload time, served from Supabase Storage public bucket.
 - Public catalogue data cached (ISR/revalidate); admin and cart/order data
   never cached at the CDN layer.
+
+## 9. Security, session & middleware layer (Milestone 3)
+
+```
+src/middleware.ts ─┬─ applies central security headers (nonce CSP) to every response
+                   ├─ lib/supabase/middleware.ts  → refreshes the Supabase session
+                   └─ coarse redirect of unauthenticated /admin/* → /admin/login
+
+lib/security/
+  headers.ts     # CSP + hardening headers (pure; strict on /admin, relaxed static)
+  auth-core.ts   # pure: resolveAdminAccess(), safeNextPath() (open-redirect guard)
+  auth.ts        # server-only: getAdminContext(), requireAdmin() — THE gate
+  rate-limit.ts  # RateLimiter interface + in-memory dev impl (prod = shared store)
+
+features/auth/
+  actions/sign-in.ts   # Supabase Auth + active-admin check + rate limit + redirect
+  actions/sign-out.ts  # clears session, back to /admin/login
+  components/AdminLoginForm.tsx
+```
+
+- **Two-layer authorization, never one.** Middleware is a coarse UX/defense
+  pass; `requireAdmin()` (server-only) is the authoritative gate and is called
+  in the admin layout and by every privileged page/action. Hiding UI is never
+  authorization (see `SECURITY_MODEL.md` §6).
+- **Server/client separation.** Session-bearing modules are server-only
+  (`auth.ts` marked `server-only`; the service-role client stays in
+  `lib/supabase/admin.ts`). Pure helpers (`auth-core`, `headers`, `rate-limit`)
+  carry no secrets and are unit-tested.
+- **Error/route states.** `app/not-found.tsx`, `app/error.tsx`,
+  `app/global-error.tsx`, and `loading.tsx` provide design-consistent,
+  reduced-motion-aware fallbacks; client errors show a generic message + an
+  optional `digest` reference, never a stack trace.

@@ -27,6 +27,20 @@ customer accounts, wishlists, coupons, automated shipping (Shiprocket),
 WhatsApp automation, refunds/returns portal, staff roles, advanced
 analytics, AI photography, virtual try-on.
 
+**Sequencing note (2026-07-11):** functional **administrator authentication +
+authorization** was moved earlier — from Milestone 10 to **Milestone 3** — and
+implemented alongside the security-header foundation. Rationale: no privileged
+admin functionality (product/order/inventory management, uploads, dashboard
+data) may be built behind a merely-cosmetic "shell"; the real auth boundary
+(`requireAdmin()`, active-`admin_profiles` check, session verification,
+generic errors, open-redirect-safe return paths, rate-limited login, logout)
+must exist before any of it. Milestone 10 in
+`PHASE_1_IMPLEMENTATION_CHECKLIST.md` is therefore already satisfied as of
+Milestone 3; remaining M10-adjacent items (per-mutation `admin_audit_logs`
+writes, distributed production rate-limit store) are folded into the milestones
+that introduce those mutations. See `SECURITY_MODEL.md` §6 and
+`DECISIONS.md` (#34).
+
 ## Phase 2 — Shipping & Operational Automation
 
 Depends on: Phase 1 `ShippingProvider` interface and `shipments` table.

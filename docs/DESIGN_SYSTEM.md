@@ -111,7 +111,23 @@ the Milestone 15 accessibility pass** — the primitives are built to accept it.
   chrome, `app/admin/login` (secure login UI shell), `app/admin` (placeholder
   dashboard demonstrating the shell — no live data/mutations).
 
-## 5. Navigation config
+## 5. Error & route states (Milestone 3)
+
+Design-consistent, reduced-motion-aware route states, all using the tokens +
+motion primitives:
+
+- `app/not-found.tsx` — polished on-brand 404 with recovery links.
+- `app/error.tsx` — route error boundary; generic message + optional `digest`
+  reference id (never a stack trace).
+- `app/global-error.tsx` — root-layout error fallback (self-contained inline
+  styles, since the app shell itself may be broken).
+- `app/loading.tsx`, `app/admin/loading.tsx` — spinner fallbacks (the spin is
+  tamed by the global reduced-motion rule).
+
+The admin login and admin shell (Milestone 2) are now backed by functional
+auth (Milestone 3) — see `SECURITY_MODEL.md` §6.
+
+## 6. Navigation config
 
 `src/config/navigation.ts` — `mainNav`, `footerSections`, `adminNav`. Category
 links point at seeded slugs; the pages they link to are built in later

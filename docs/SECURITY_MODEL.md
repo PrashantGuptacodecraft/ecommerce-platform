@@ -138,3 +138,75 @@ table is never created "temporarily without RLS." See
   workflow.
 - Third-party monitoring/alerting (e.g. Sentry) — architecture leaves a
   slot (`lib/observability` naming reserved) but is not wired up in Phase 1.
+
+## 6. Implementation status — Milestone 3 (functional auth + headers)
+
+Administrator authentication was **brought forward from Milestone 10 to
+Milestone 3** so the auth boundary exists before any privileged admin
+functionality (see `PHASE_ROADMAP.md` sequencing note, `DECISIONS.md` #34).
+
+### 6.1 Authentication & authorization (implemented)
+
+- `/admin/login` is wired to **Supabase Auth** (`signInWithPassword`) via the
+  server action `features/auth/actions/sign-in.ts`. Input is validated
+  server-side with the shared Zod schema (`lib/validation/auth.ts`, 12-char
+  minimum).
+- **All failures return one generic message** (`Invalid email or password.`) —
+  bad input, wrong password, non-admin, and inactive-admin are
+  indistinguishable (no account enumeration).
+- After a successful password check, the action requires an **active
+  `admin_profiles` row** (`role = 'admin' AND is_active = true`), read
+  server-side. A valid Supabase user who is not an active admin is **signed out
+  and rejected generically**. Client-controlled auth metadata is never trusted.
+- **`requireAdmin()`** (`lib/security/auth.ts`, `server-only`) is THE gate:
+  validates the session with `auth.getUser()` then the `admin_profiles` row, and
+  `redirect('/admin/login')` for anyone who is not an active admin. It is called
+  in the admin layout (guarding all nested `/admin/*` routes except login) and
+  must be called by **every privileged page and server action** — middleware is
+  only a coarse first pass, never the sole gate.
+- **Middleware** (`src/middleware.ts`) refreshes the Supabase session (current
+  `@supabase/ssr` pattern in `lib/supabase/middleware.ts`) and coarsely
+  redirects unauthenticated users away from `/admin/*` (except login). Active
+  admins hitting `/admin/login` are redirected to `/admin`.
+- **Logout** (`features/auth/actions/sign-out.ts`) clears the session and
+  returns to `/admin/login`.
+- **Open-redirect safe:** post-login `next` targets pass `safeNextPath`
+  (`lib/security/auth-core.ts`) — same-origin `/admin`-only allow-list,
+  rejecting absolute/protocol-relative URLs, backslash and CRLF tricks, and the
+  login path itself.
+- **No public admin signup.** The service-role key is never referenced in any
+  of this (the anon key + user session are used); RLS policies are unchanged.
+- Passwords, tokens, cookies, and full auth responses are **never logged**.
+
+### 6.2 Rate limiting
+
+`lib/security/rate-limit.ts` defines a `RateLimiter` interface + an in-memory
+sliding-window implementation, applied to the login action (5 / 15 min per IP).
+⚠️ The in-memory limiter is **dev / single-instance only** — it is NOT
+sufficient for a horizontally scaled production deployment (per-instance
+counters). Production must back the same interface with a shared store (Upstash
+Redis via the reserved `RATE_LIMIT_KV_URL` / `RATE_LIMIT_KV_TOKEN`).
+
+### 6.3 Content-Security-Policy (risk-based split)
+
+Central config in `lib/security/headers.ts`, applied per request by middleware
+with a fresh nonce. No `unsafe-eval` in production anywhere. Documented external
+origins: Supabase project (`connect-src`/`img-src` + `wss` realtime) and
+Razorpay (`script-src` checkout.js, `frame-src`, `connect-src`).
+
+- **Dynamic, sensitive routes (`/admin/*`): strict** — nonce-based
+  `script-src`, **no `unsafe-inline`**.
+- **Public, statically-prerendered storefront pages: `script-src` uses
+  `'unsafe-inline'`** (no nonce). This is a **deliberate, documented exception**:
+  a per-request nonce cannot be embedded in static HTML, and Next.js emits
+  nonce-less inline bootstrap scripts for static pages that a strict nonce CSP
+  would block (breaking hydration). Risk is low (no user-authored inline HTML;
+  React auto-escapes; no `dangerouslySetInnerHTML`). Path to remove: render the
+  storefront dynamically with a nonce, or adopt hash-based allow-listing, in a
+  later hardening pass. `style-src 'unsafe-inline'` is likewise required by
+  motion/react's dynamic inline styles (styles are far lower risk than scripts).
+
+Other headers: HSTS (production only), `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin`,
+`Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=()`,
+`X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`.

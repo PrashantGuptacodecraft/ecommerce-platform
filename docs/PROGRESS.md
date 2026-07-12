@@ -380,3 +380,89 @@ model, and architecture untouched. Full design docs in `docs/DESIGN_SYSTEM.md`.
   `next.config.ts`/middleware, and `lib/security/rate-limit.ts`.
 - Milestones 4–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
 - **Awaiting user go-ahead before starting Milestone 3.**
+
+---
+
+## Milestone 3 — Security foundation + functional admin auth — 2026-07-11
+
+**Re-sequencing:** functional administrator authentication was moved from
+Milestone 10 into Milestone 3 (owner directive) so the auth boundary exists
+before any privileged admin functionality — see `PHASE_ROADMAP.md`,
+`SECURITY_MODEL.md` §6, `DECISIONS.md` #34. RLS, migrations, `_PURPOSE.md`
+files, and the design system were preserved.
+
+### Completed
+- **Error / route-state foundation:** `app/not-found.tsx` (on-brand 404),
+  `app/error.tsx` (generic message + `digest` ref, no stack trace),
+  `app/global-error.tsx`, `app/loading.tsx`, `app/admin/loading.tsx` — all
+  design-consistent and reduced-motion aware.
+- **Central security headers** (`lib/security/headers.ts`, applied per-request
+  by `src/middleware.ts`): nonce CSP allow-listing Supabase (+wss) and Razorpay,
+  HSTS (prod), `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
+  `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'`. **No `unsafe-eval` in
+  prod.** Risk-based CSP split: strict nonce (no `unsafe-inline`) on dynamic
+  `/admin/*`; `unsafe-inline` (no nonce) on static storefront pages (documented,
+  Decision #35).
+- **Functional admin authentication:** `/admin/login` → Supabase Auth via
+  `features/auth/actions/sign-in.ts` (shared Zod schema, generic errors,
+  active-`admin_profiles` check, sign-out-on-non-admin, IP rate limit,
+  open-redirect-safe `next`). `requireAdmin()` (`lib/security/auth.ts`,
+  `server-only`) gates the admin layout + dashboard page. Middleware coarse-
+  redirects unauthenticated `/admin/*` → login and active admins away from
+  login. Logout via `features/auth/actions/sign-out.ts` + `LogoutButton` in the
+  shell. `admin_profiles` role is server-verified; client metadata never
+  trusted; service-role key never referenced; RLS unchanged.
+- **Session handling:** `lib/supabase/middleware.ts` refreshes the session per
+  the current `@supabase/ssr` pattern; server/client modules kept separate
+  (`server-only` on `auth.ts`); no passwords/tokens/cookies/keys logged.
+- **Rate-limiting foundation:** `lib/security/rate-limit.ts` — `RateLimiter`
+  interface + in-memory sliding-window impl (5/15min on login by IP), with a
+  loud PRODUCTION requirement to swap in a shared store for horizontal scale
+  (Decision #37).
+- **Docs:** `SECURITY_MODEL.md` §6, `ARCHITECTURE.md` §9, `PHASE_ROADMAP.md`
+  sequencing note, `DESIGN_SYSTEM.md` §5, Decisions #34–39 (#30 superseded).
+
+### Verification performed
+- Quality gates (all pass): `lint` 0, `type-check` 0, `test` **7 files / 53
+  tests**, `build` 0, `format:check` 0, `npm audit` **0 vulnerabilities**.
+- New tests: `headers.test.ts` (strict vs static CSP, HSTS, no unsafe-eval,
+  origins), `auth-core.test.ts` (`resolveAdminAccess`; `safeNextPath`
+  open-redirect/CRLF/backslash cases), `rate-limit.test.ts` (window + keys),
+  `sign-in.test.ts` (invalid input, generic auth failure, non-admin +
+  inactive-admin rejection with sign-out, active-admin redirect, safe/unsafe
+  `next`, rate-limited).
+- **Runtime (prod `next start`):** `/` → 200, `/admin/login` → 200, unknown →
+  404; logged-out `/admin` → **307 → `/admin/login?next=%2Fadmin`**; all
+  security headers present and correct (verified via curl); CSP split confirmed
+  (storefront `unsafe-inline`, admin `nonce`).
+- **Browser (Playwright chromium) at 360/375/390/430/768/1280:** **no
+  horizontal overflow** on `/`, `/admin/login`, 404; **zero console/CSP errors**
+  after the CSP fix; mobile nav drawer opens on tap and closes on Escape; header
+  touch targets bumped to 44px.
+- **Bug caught & fixed during verification:** the initial strict nonce CSP
+  blocked inline hydration scripts on statically-prerendered storefront pages
+  (drawer wouldn't open) → resolved with the risk-based hybrid CSP (Decision
+  #35), re-verified green.
+
+### Known limitations
+- **Live authenticated e2e not run by me:** login→`/admin`, logout→`/admin/login`,
+  and non-admin denial are covered by unit tests (mocked Supabase) and the gate
+  logic, but a live browser run of the *authenticated* flow needs the admin
+  password (not available to me). Recommend the owner run it, or provide a
+  throwaway credential / approve creating a temporary admin.
+- **In-memory rate limiter** is dev/single-instance only — production needs a
+  shared store (Decision #37).
+- **`unsafe-inline` in `script-src` on static storefront pages** (Decision #35)
+  and `style-src` (Decision #36) — documented, low-risk, tightenable later.
+- **`admin_audit_logs` writes** are wired per-mutation as privileged mutations
+  are introduced (M11–13), not in M3 (login has no mutation surface yet beyond
+  session).
+- Playwright browser installed locally for verification; no committed e2e specs
+  yet (that suite is Milestone 14).
+
+### Remaining Phase 1 tasks
+- Milestone 4 (product catalogue read path) next: server-side product/category
+  fetchers, homepage/shop/category/product/search pages against real seeded
+  data, SEO metadata/sitemap/robots/JSON-LD.
+- Milestones 5–16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
+- **Stopping after Milestone 3; awaiting go-ahead for Milestone 4.**

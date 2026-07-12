@@ -5,8 +5,9 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utilities/cn'
 import { adminNav } from '@/config/navigation'
 import { brand } from '@/config/brand'
+import { LogoutButton } from '@/components/admin/LogoutButton'
 
-/** Admin navigation sidebar with active-route highlighting. */
+/** Admin navigation sidebar (desktop) with active-route highlighting + logout. */
 export function AdminSidebar() {
   const pathname = usePathname()
 
@@ -38,6 +39,9 @@ export function AdminSidebar() {
           )
         })}
       </nav>
+      <div className="border-t border-fog p-3">
+        <LogoutButton />
+      </div>
     </aside>
   )
 }

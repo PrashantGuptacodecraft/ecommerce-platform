@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
+import { requireAdmin } from '@/lib/security/auth'
 
 // Admin is never indexed.
 export const metadata: Metadata = {
@@ -7,19 +9,19 @@ export const metadata: Metadata = {
 }
 
 /**
- * Admin route-group shell.
- *
- * SECURITY — INTEGRATION POINT (Milestone 10): server-side session verification
- * (`requireAdmin()` from lib/security/auth.ts) is added HERE, so every
- * `/admin/*` request other than `/admin/login` is gated server-side before it
- * renders — redirecting unauthenticated users to the login page. Client-side
- * route guards are UX only and are never the actual gate
- * (docs/SECURITY_MODEL.md §1).
- *
- * In Milestone 2 this is a passive wrapper: no protected data or mutations
- * exist yet (dashboard/list pages are populated in Milestones 12+), so nothing
- * sensitive is exposed by the un-guarded shell.
+ * Admin route-group guard. Runs `requireAdmin()` (the authoritative server-side
+ * gate) for every `/admin/*` route EXCEPT the login page, redirecting
+ * non-admins to /admin/login. `x-pathname` is set by middleware; if it is
+ * somehow absent we skip here (fail-open) because middleware already coarse-
+ * protects and each protected page also calls `requireAdmin()` — so the route
+ * is never actually unguarded (docs/SECURITY_MODEL.md §1).
  */
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = (await headers()).get('x-pathname')
+
+  if (pathname && pathname !== '/admin/login') {
+    await requireAdmin()
+  }
+
   return <div className="min-h-dvh bg-paper text-ink">{children}</div>
 }
