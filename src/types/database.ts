@@ -108,6 +108,38 @@ export type Database = {
           },
         ]
       }
+      admin_mutation_idempotency: {
+        Row: {
+          admin_id: string
+          created_at: string
+          idempotency_key: string
+          mutation_type: string
+          result: Json | null
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          idempotency_key: string
+          mutation_type: string
+          result?: Json | null
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          idempotency_key?: string
+          mutation_type?: string
+          result?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_mutation_idempotency_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_profiles: {
         Row: {
           created_at: string
@@ -796,6 +828,51 @@ export type Database = {
           },
         ]
       }
+      storage_cleanup_jobs: {
+        Row: {
+          attempts: number
+          bucket_name: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          object_path: string
+          product_id: string | null
+          source_image_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          bucket_name: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          object_path: string
+          product_id?: string | null
+          source_image_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          bucket_name?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          object_path?: string
+          product_id?: string | null
+          source_image_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_settings: {
         Row: {
           key: string
@@ -893,7 +970,23 @@ export type Database = {
       }
     }
     Functions: {
+      delete_product_image_transaction: {
+        Args: { p_idempotency_key: string; p_image_id: string }
+        Returns: string
+      }
       is_active_admin: { Args: never; Returns: boolean }
+      manual_adjust_variant_stock: {
+        Args: {
+          p_change_quantity: number
+          p_idempotency_key: string
+          p_note: string
+          p_variant_id: string
+        }
+        Returns: {
+          new_stock: number
+          transaction_id: string
+        }[]
+      }
       release_variant_stock: {
         Args: {
           p_note?: string
@@ -911,6 +1004,16 @@ export type Database = {
           p_variant_id: string
         }
         Returns: number
+      }
+      save_product_tree: {
+        Args: {
+          p_expected_updated_at: string
+          p_idempotency_key: string
+          p_payload: Json
+          p_payload_version: number
+          p_product_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {

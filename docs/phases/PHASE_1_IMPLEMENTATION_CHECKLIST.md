@@ -83,7 +83,19 @@ its underlying data/service layer exists.
 - [ ] SEO metadata (per-page `generateMetadata`), sitemap, robots.txt,
       product/breadcrumb structured data (JSON-LD)
 
-## Milestone 5 — Cart
+## Milestone 5 — Admin: products, images, variants, categories
+
+- [ ] Product list/create/edit forms (React Hook Form + Zod)
+- [ ] Image uploader: multi-file, progress, reorder, delete, primary
+      selection, MIME + signature validation, size limit, safe generated
+      filenames, uploads restricted to authenticated admins
+- [ ] Variant builder: size/colour option values → generated variant grid
+      with SKU, stock, price adjustment, active toggle
+- [ ] Category CRUD
+- [ ] Inventory view: stock levels, low-stock flag, manual adjustment
+      (writes `inventory_transactions` with `manual_adjustment` reason)
+
+## Milestone 6 — Cart
 
 - [ ] `features/cart`: client cart store (variant id, qty) persisted
       client-side, plus `POST /api/cart/validate` that re-fetches
@@ -92,7 +104,7 @@ its underlying data/service layer exists.
 - [ ] Prevent adding an inactive/out-of-stock variant client-side (defense
       in depth — server re-validates regardless)
 
-## Milestone 6 — Checkout & order creation
+## Milestone 7 — Checkout & order creation
 
 - [ ] Address form (React Hook Form + Zod), large touch-friendly mobile
       fields, minimal-distraction layout
@@ -105,7 +117,7 @@ its underlying data/service layer exists.
 - [ ] Order success page, basic order tracking page (order number + phone/
       email lookup, no raw table exposure)
 
-## Milestone 7 — Razorpay payment
+## Milestone 8 — Razorpay payment
 
 - [ ] `lib/razorpay`: server-only client wrapper
 - [ ] `POST /api/payments/razorpay/order`: create Razorpay order using the
@@ -143,15 +155,6 @@ its underlying data/service layer exists.
 - [ ] Redirect-after-login allow-list (no open redirect)
 - [ ] `admin_audit_logs` write on every privileged mutation
 
-## Milestone 11 — Admin: products, images, variants, categories
-
-- [ ] Product list/create/edit forms (React Hook Form + Zod)
-- [ ] Image uploader: multi-file, progress, reorder, delete, primary
-      selection, MIME + signature validation, size limit, safe generated
-      filenames, uploads restricted to authenticated admins
-- [ ] Variant builder: size/colour option values → generated variant grid
-      with SKU, stock, price adjustment, active toggle
-- [ ] Category CRUD
 
 ## Milestone 12 — Admin: orders, inventory, settings, dashboard
 
