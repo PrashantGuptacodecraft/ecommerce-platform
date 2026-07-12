@@ -45,12 +45,10 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({
-  params,
-}: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params
   const product = await getProductBySlug(slug)
-  if (!product) return {}
+  if (!product) notFound()
 
   const siteUrl = getSiteUrl()
   const canonicalUrl = `${siteUrl}/product/${product.slug}`
@@ -58,9 +56,7 @@ export async function generateMetadata({
   return {
     title: product.seo_title ?? `${product.name} — ${brand.name}`,
     description:
-      product.seo_description ??
-      product.short_description ??
-      `${product.name}. ${brand.tagline}`,
+      product.seo_description ?? product.short_description ?? `${product.name}. ${brand.tagline}`,
     alternates: { canonical: canonicalUrl },
     openGraph: {
       title: product.name,
@@ -128,22 +124,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div className="mt-6 grid gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
             {/* Gallery — left/top */}
             <div className="group">
-              <ProductGallery
-                images={product.images}
-                productName={product.name}
-              />
+              <ProductGallery images={product.images} productName={product.name} />
             </div>
 
             {/* Product info — right/bottom */}
             <div className="flex flex-col gap-5">
               {/* Badges */}
               <div className="flex flex-wrap gap-2">
-                {product.is_new_arrival && (
-                  <Badge variant="accent">New Arrival</Badge>
-                )}
-                {product.is_featured && (
-                  <Badge variant="outline">Featured</Badge>
-                )}
+                {product.is_new_arrival && <Badge variant="accent">New Arrival</Badge>}
+                {product.is_featured && <Badge variant="outline">Featured</Badge>}
               </div>
 
               {/* Name */}
@@ -160,9 +149,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               {/* Short description */}
               {product.short_description && (
-                <p className="text-sm leading-relaxed text-slate">
-                  {product.short_description}
-                </p>
+                <p className="text-sm leading-relaxed text-slate">{product.short_description}</p>
               )}
 
               {/* Variant selector + Add to Cart — Client boundary */}

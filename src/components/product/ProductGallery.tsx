@@ -64,10 +64,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   const handleDragEnd = useCallback(
     (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       const { offset, velocity } = info
-      if (
-        Math.abs(offset.x) > SWIPE_THRESHOLD ||
-        Math.abs(velocity.x) > SWIPE_VELOCITY
-      ) {
+      if (Math.abs(offset.x) > SWIPE_THRESHOLD || Math.abs(velocity.x) > SWIPE_VELOCITY) {
         if (offset.x < 0) goNext()
         else goPrev()
       }
@@ -134,7 +131,17 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 'hover:bg-white focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
               )}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
@@ -150,7 +157,17 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 'hover:bg-white focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
               )}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <path d="m9 18 6-6-6-6" />
               </svg>
             </button>
@@ -202,9 +219,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-fog/50">
-                    <span className="text-[8px] uppercase text-mist">
-                      {index + 1}
-                    </span>
+                    <span className="text-[8px] uppercase text-mist">{index + 1}</span>
                   </div>
                 )}
               </button>

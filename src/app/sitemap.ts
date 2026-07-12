@@ -20,10 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   try {
-    const [categories, productSlugs] = await Promise.all([
-      getActiveCategories(),
-      getProductSlugs(),
-    ])
+    const [categories, productSlugs] = await Promise.all([getActiveCategories(), getProductSlugs()])
 
     const categoryEntries: MetadataRoute.Sitemap = categories.map((cat) => ({
       url: `${baseUrl}/category/${cat.slug}`,

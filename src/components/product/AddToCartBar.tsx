@@ -24,11 +24,7 @@ type AddToCartBarProps = {
  *
  * Milestone 5 wires real cart behaviour by passing onAddToCart.
  */
-export function AddToCartBar({
-  selectedVariant,
-  basePricePaise,
-  onAddToCart,
-}: AddToCartBarProps) {
+export function AddToCartBar({ selectedVariant, basePricePaise, onAddToCart }: AddToCartBarProps) {
   const price = selectedVariant
     ? basePricePaise + selectedVariant.priceAdjustmentPaise
     : basePricePaise
@@ -70,9 +66,7 @@ export function AddToCartBar({
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center gap-4">
-        <span className="text-lg font-medium tabular-nums text-ink">
-          {formatPaise(price)}
-        </span>
+        <span className="text-lg font-medium tabular-nums text-ink">{formatPaise(price)}</span>
         <Button
           size="lg"
           className="flex-1 md:flex-none md:px-8"

@@ -34,9 +34,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchQuerySchema.parse(flat)
   const term = query.q ?? ''
 
-  const result = term.length > 0
-    ? await searchProducts(term, { page: query.page })
-    : { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 }
+  const result =
+    term.length > 0
+      ? await searchProducts(term, { page: query.page })
+      : { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 }
 
   const activeParams: Record<string, string> = {}
   if (term) activeParams.q = term
@@ -71,9 +72,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </p>
               </>
             ) : (
-              <h1 className="font-serif text-2xl text-ink sm:text-3xl">
-                Search
-              </h1>
+              <h1 className="font-serif text-2xl text-ink sm:text-3xl">Search</h1>
             )}
           </div>
         </RevealOnScroll>

@@ -25,12 +25,10 @@ type CategoryPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export async function generateMetadata({
-  params,
-}: CategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
   const category = await getCategoryBySlug(slug)
-  if (!category) return {}
+  if (!category) notFound()
 
   return {
     title: `${category.name} — ${brand.name}`,
@@ -39,10 +37,7 @@ export async function generateMetadata({
   }
 }
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: CategoryPageProps) {
+export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
   const { slug } = await params
   const category = await getCategoryBySlug(slug)
 
@@ -77,13 +72,9 @@ export default async function CategoryPage({
 
         <RevealOnScroll>
           <div className="mt-6 mb-8">
-            <h1 className="font-serif text-3xl text-ink sm:text-4xl">
-              {category.name}
-            </h1>
+            <h1 className="font-serif text-3xl text-ink sm:text-4xl">{category.name}</h1>
             {category.description && (
-              <p className="mt-2 max-w-2xl text-sm text-slate">
-                {category.description}
-              </p>
+              <p className="mt-2 max-w-2xl text-sm text-slate">{category.description}</p>
             )}
             <p className="mt-1 text-sm text-mist">
               {result.total} {result.total === 1 ? 'product' : 'products'}

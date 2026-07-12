@@ -29,11 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const isSoldOut = product.totalStock === 0
 
   return (
-    <Link
-      href={`/product/${product.slug}`}
-      className="group block"
-      aria-label={product.name}
-    >
+    <Link href={`/product/${product.slug}`} className="group block" aria-label={product.name}>
       {/* Image area */}
       <div className="relative overflow-hidden rounded-lg">
         <ScaleOnHover>
@@ -44,28 +40,18 @@ export function ProductCard({ product }: ProductCardProps) {
                 alt={product.primaryImage?.alt_text ?? product.name}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className={cn(
-                  'object-cover',
-                  isSoldOut && 'opacity-60',
-                )}
+                className={cn('object-cover', isSoldOut && 'opacity-60')}
               />
             </div>
           ) : (
-            <ImageFallback
-              productName={product.name}
-              className={cn(isSoldOut && 'opacity-60')}
-            />
+            <ImageFallback productName={product.name} className={cn(isSoldOut && 'opacity-60')} />
           )}
         </ScaleOnHover>
 
         {/* Overlay badges — top-left */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
-          {product.isNewArrival && (
-            <Badge variant="accent">New</Badge>
-          )}
-          {isSoldOut && (
-            <Badge variant="danger">Sold Out</Badge>
-          )}
+          {product.isNewArrival && <Badge variant="accent">New</Badge>}
+          {isSoldOut && <Badge variant="danger">Sold Out</Badge>}
         </div>
       </div>
 

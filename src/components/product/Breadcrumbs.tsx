@@ -38,10 +38,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
               ) : (
                 <Link
                   href={item.href}
-                  className={cn(
-                    'transition-colors duration-150',
-                    'hover:text-ink',
-                  )}
+                  className={cn('transition-colors duration-150', 'hover:text-ink')}
                 >
                   {item.label}
                 </Link>

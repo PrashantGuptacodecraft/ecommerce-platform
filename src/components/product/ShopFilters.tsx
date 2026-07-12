@@ -100,9 +100,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
                     type="radio"
                     name="category"
                     checked={isSelected}
-                    onChange={() =>
-                      updateFilter('category', isSelected ? undefined : cat.slug)
-                    }
+                    onChange={() => updateFilter('category', isSelected ? undefined : cat.slug)}
                     className="sr-only"
                   />
                   <span
@@ -111,9 +109,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
                       isSelected ? 'border-accent bg-accent' : 'border-mist',
                     )}
                   >
-                    {isSelected && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                    )}
+                    {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                   </span>
                   <span className="text-ink">{cat.name}</span>
                   <span className="ml-auto text-xs text-mist">{cat.count}</span>
@@ -127,9 +123,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
       {/* Size pills */}
       {facets.sizes.length > 0 && (
         <div>
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate">
-            Size
-          </h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate">Size</h3>
           <div className="flex flex-wrap gap-2">
             {facets.sizes.map((size) => {
               const isSelected = currentFilters.size === size
@@ -138,9 +132,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
                 <button
                   key={size}
                   type="button"
-                  onClick={() =>
-                    updateFilter('size', isSelected ? undefined : size)
-                  }
+                  onClick={() => updateFilter('size', isSelected ? undefined : size)}
                   className={cn(
                     'inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full px-3 text-sm font-medium',
                     'transition-all duration-150',
@@ -161,9 +153,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
       {/* Colour pills */}
       {facets.colours.length > 0 && (
         <div>
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate">
-            Colour
-          </h3>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate">Colour</h3>
           <div className="flex flex-wrap gap-2">
             {facets.colours.map((colour) => {
               const isSelected = currentFilters.colour === colour
@@ -172,9 +162,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
                 <button
                   key={colour}
                   type="button"
-                  onClick={() =>
-                    updateFilter('colour', isSelected ? undefined : colour)
-                  }
+                  onClick={() => updateFilter('colour', isSelected ? undefined : colour)}
                   className={cn(
                     'inline-flex min-h-[36px] items-center justify-center rounded-full px-3 text-sm font-medium',
                     'transition-all duration-150',
@@ -223,12 +211,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
     <>
       {/* Mobile filter trigger */}
       <div className="md:hidden">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setDrawerOpen(true)}
-          className="mb-4"
-        >
+        <Button variant="outline" size="sm" onClick={() => setDrawerOpen(true)} className="mb-4">
           Filters
           {hasActiveFilters && (
             <span className="ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-white">
@@ -236,12 +219,7 @@ export function ShopFilters({ facets, currentFilters }: ShopFiltersProps) {
             </span>
           )}
         </Button>
-        <Drawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          title="Filters"
-          side="left"
-        >
+        <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} title="Filters" side="left">
           {filterContent}
         </Drawer>
       </div>
@@ -266,8 +244,7 @@ function PriceInput({
   valuePaise?: number
   onChange: (paise: number | undefined) => void
 }) {
-  const displayValue =
-    valuePaise !== undefined ? String(Math.round(valuePaise / 100)) : ''
+  const displayValue = valuePaise !== undefined ? String(Math.round(valuePaise / 100)) : ''
 
   return (
     <input

@@ -5,10 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utilities/cn'
 import { formatPaise } from '@/lib/utilities/money'
 import { StockBadge } from '@/components/product/StockBadge'
-import type {
-  ProductOption,
-  ProductVariant,
-} from '@/features/products/types'
+import type { ProductOption, ProductVariant } from '@/features/products/types'
 
 type VariantSelectorProps = {
   options: ProductOption[]
@@ -50,9 +47,7 @@ export function VariantSelector({
       const paramValue = searchParams.get(paramKey)
       if (paramValue) {
         // Validate: does this value exist in the option?
-        const valid = option.values.some(
-          (v) => v.value.toLowerCase() === paramValue.toLowerCase(),
-        )
+        const valid = option.values.some((v) => v.value.toLowerCase() === paramValue.toLowerCase())
         if (valid) {
           const matched = option.values.find(
             (v) => v.value.toLowerCase() === paramValue.toLowerCase(),
@@ -65,9 +60,7 @@ export function VariantSelector({
   }, [sortedOptions, searchParams])
 
   // selections: optionId -> optionValueId
-  const [selections, setSelections] = useState<Record<string, string>>(
-    getInitialSelections,
-  )
+  const [selections, setSelections] = useState<Record<string, string>>(getInitialSelections)
 
   // Track option group refs for keyboard navigation
   const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -200,9 +193,7 @@ export function VariantSelector({
   return (
     <div className="space-y-5">
       {sortedOptions.map((option) => {
-        const sortedValues = [...option.values].sort(
-          (a, b) => a.sortOrder - b.sortOrder,
-        )
+        const sortedValues = [...option.values].sort((a, b) => a.sortOrder - b.sortOrder)
 
         return (
           <div key={option.id}>
@@ -260,12 +251,8 @@ export function VariantSelector({
       {matchedVariant && (
         <div className="space-y-2 rounded-lg border border-fog bg-white p-4">
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-sm font-medium text-ink">
-              {formatPaise(variantPrice)}
-            </span>
-            <span className="text-xs text-mist">
-              SKU: {matchedVariant.sku}
-            </span>
+            <span className="text-sm font-medium text-ink">{formatPaise(variantPrice)}</span>
+            <span className="text-xs text-mist">SKU: {matchedVariant.sku}</span>
           </div>
           <StockBadge totalStock={matchedVariant.stockQuantity} />
         </div>

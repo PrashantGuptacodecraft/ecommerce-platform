@@ -33,12 +33,9 @@ export function ProductDetailClient({
 }: ProductDetailClientProps) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
 
-  const handleVariantChange = useCallback(
-    (variant: ProductVariant | null) => {
-      setSelectedVariant(variant)
-    },
-    [],
-  )
+  const handleVariantChange = useCallback((variant: ProductVariant | null) => {
+    setSelectedVariant(variant)
+  }, [])
 
   return (
     <div className="space-y-5">
@@ -59,10 +56,7 @@ export function ProductDetailClient({
       <SizeChart sizeChart={sizeChart} productName={productName} />
 
       {/* Add to cart bar */}
-      <AddToCartBar
-        selectedVariant={selectedVariant}
-        basePricePaise={basePricePaise}
-      />
+      <AddToCartBar selectedVariant={selectedVariant} basePricePaise={basePricePaise} />
     </div>
   )
 }

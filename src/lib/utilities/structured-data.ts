@@ -39,9 +39,7 @@ export function productJsonLd(
   const priceInRupees = (product.base_price_paise / 100).toFixed(2)
 
   const availability =
-    product.totalStock > 0
-      ? 'https://schema.org/InStock'
-      : 'https://schema.org/OutOfStock'
+    product.totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
 
   const ld: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -73,9 +71,7 @@ export function productJsonLd(
 }
 
 /** Schema.org BreadcrumbList structured data. */
-export function breadcrumbJsonLd(
-  items: { name: string; url: string }[],
-): Record<string, unknown> {
+export function breadcrumbJsonLd(items: { name: string; url: string }[]): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

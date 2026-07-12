@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import { createPublicClient } from '@/lib/supabase/public'
 import { site } from '@/config/site'
 import type {
   Category,
@@ -15,8 +15,8 @@ import type {
 import type { CatalogueFacets } from '@/features/products/types/facets'
 
 /**
- * Server-only catalogue read layer. All queries go through the cookie-bound
- * anon client, so RLS enforces active-only visibility (public policies expose
+ * Server-only catalogue read layer. All queries go through the cookie-free
+ * public client, so RLS enforces active-only visibility (public policies expose
  * only `is_active = true` catalogue rows). We additionally filter/derive here.
  *
  * These are READ ONLY — no mutations. Admin catalogue writes (Milestone 11) use
@@ -79,7 +79,7 @@ const PRODUCT_CARD_SELECT =
 // Categories
 // ---------------------------------------------------------------------------
 export async function getActiveCategories(): Promise<Category[]> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('categories')
     .select('id, name, slug, description, image_url, sort_order')
@@ -91,7 +91,7 @@ export async function getActiveCategories(): Promise<Category[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('categories')
     .select('id, name, slug, description, image_url, sort_order')
@@ -113,7 +113,7 @@ type ListOptions = {
 
 /** Featured products for the homepage. */
 export async function getFeaturedProducts(limit = 8): Promise<ProductSummary[]> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('products')
     .select(PRODUCT_CARD_SELECT)
@@ -128,7 +128,7 @@ export async function getFeaturedProducts(limit = 8): Promise<ProductSummary[]> 
 
 /** Newest arrivals for the homepage. */
 export async function getNewArrivals(limit = 8): Promise<ProductSummary[]> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const { data, error } = await supabase
     .from('products')
     .select(PRODUCT_CARD_SELECT)
@@ -148,7 +148,7 @@ export async function getNewArrivals(limit = 8): Promise<ProductSummary[]> {
  * acceptable at the Phase 1 catalogue size (<=20 products).
  */
 export async function listProducts(query: ShopQuery): Promise<PaginatedProducts> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const page = query.page ?? 1
   const pageSize = PAGE_SIZE
 
@@ -217,7 +217,9 @@ export async function listProducts(query: ShopQuery): Promise<PaginatedProducts>
     colour: query.colour,
   })
 
-  const filtered = (data as unknown as ProductJoinRow[]).filter((r) => matchingIds.has(r.id)).map(toSummary)
+  const filtered = (data as unknown as ProductJoinRow[])
+    .filter((r) => matchingIds.has(r.id))
+    .map(toSummary)
   const total = filtered.length
   const from = (page - 1) * pageSize
   const items = filtered.slice(from, from + pageSize)
@@ -229,7 +231,7 @@ export async function listProducts(query: ShopQuery): Promise<PaginatedProducts>
  * variant matching the requested size and/or colour option values.
  */
 async function filterProductIdsByOptionValues(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createPublicClient>,
   productIds: string[],
   filters: { size?: string; colour?: string },
 ): Promise<Set<string>> {
@@ -239,9 +241,7 @@ async function filterProductIdsByOptionValues(
 
   const { data, error } = await supabase
     .from('product_variants')
-    .select(
-      'product_id, is_active, variant_option_values ( product_option_values ( value ) )',
-    )
+    .select('product_id, is_active, variant_option_values ( product_option_values ( value ) )')
     .in('product_id', productIds)
     .eq('is_active', true)
 
@@ -269,7 +269,7 @@ export async function searchProducts(
   term: string,
   options: ListOptions = {},
 ): Promise<PaginatedProducts> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
   const page = options.page ?? 1
   const pageSize = options.limit ?? PAGE_SIZE
   const from = (page - 1) * pageSize
@@ -296,18 +296,15 @@ export async function searchProducts(
 // Product detail
 // ---------------------------------------------------------------------------
 export async function getProductSlugs(): Promise<string[]> {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('products')
-    .select('slug')
-    .eq('is_active', true)
+  const supabase = createPublicClient()
+  const { data, error } = await supabase.from('products').select('slug').eq('is_active', true)
 
   if (error) throw new Error(`getProductSlugs: ${error.message}`)
   return (data ?? []).map((r) => r.slug)
 }
 
 export async function getProductBySlug(slug: string): Promise<ProductDetail | null> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   const { data, error } = await supabase
     .from('products')
@@ -425,7 +422,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
  * Uses the cookie-bound anon client — RLS enforces active-only visibility.
  */
 export async function getCatalogueFacets(): Promise<CatalogueFacets> {
-  const supabase = await createClient()
+  const supabase = createPublicClient()
 
   // 1. Category facets: active categories with count of active products
   const { data: catData, error: catError } = await supabase
@@ -452,9 +449,8 @@ export async function getCatalogueFacets(): Promise<CatalogueFacets> {
   if (priceError) throw new Error(`getCatalogueFacets/prices: ${priceError.message}`)
 
   const prices = (priceData ?? []).map((p) => p.base_price_paise)
-  const priceRange = prices.length > 0
-    ? { min: Math.min(...prices), max: Math.max(...prices) }
-    : { min: 0, max: 0 }
+  const priceRange =
+    prices.length > 0 ? { min: Math.min(...prices), max: Math.max(...prices) } : { min: 0, max: 0 }
 
   // 3. Distinct size and colour values from active variants of active products.
   //    We fetch variant→option_value→option to determine which are Size vs Colour.
@@ -462,8 +458,8 @@ export async function getCatalogueFacets(): Promise<CatalogueFacets> {
     .from('product_variants')
     .select(
       'is_active, stock_quantity, ' +
-      'products!inner ( is_active ), ' +
-      'variant_option_values ( product_option_values ( value, product_options ( name ) ) )'
+        'products!inner ( is_active ), ' +
+        'variant_option_values ( product_option_values ( value, product_options ( name ) ) )',
     )
     .eq('is_active', true)
 
@@ -484,7 +480,7 @@ export async function getCatalogueFacets(): Promise<CatalogueFacets> {
   const sizeSet = new Set<string>()
   const colourSet = new Set<string>()
 
-  for (const v of ((optData as unknown as FacetVariantRow[]) ?? [])) {
+  for (const v of (optData as unknown as FacetVariantRow[]) ?? []) {
     // Only include facets from active variants with stock
     if (!v.is_active || v.stock_quantity <= 0) continue
     for (const vov of v.variant_option_values) {

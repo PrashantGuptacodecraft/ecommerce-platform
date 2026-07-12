@@ -10,10 +10,7 @@ type PaginationProps = {
 /**
  * Build the URL for a given page number, preserving all other search params.
  */
-function pageHref(
-  targetPage: number,
-  searchParams?: Record<string, string>,
-): string {
+function pageHref(targetPage: number, searchParams?: Record<string, string>): string {
   const params = new URLSearchParams(searchParams ?? {})
   if (targetPage <= 1) {
     params.delete('page')
@@ -99,11 +96,7 @@ export function Pagination({ page, totalPages, searchParams }: PaginationProps) 
 
         if (p === page) {
           return (
-            <span
-              key={p}
-              className={cn(baseStyles, activeStyles)}
-              aria-current="page"
-            >
+            <span key={p} className={cn(baseStyles, activeStyles)} aria-current="page">
               {p}
             </span>
           )

@@ -22,11 +22,7 @@ export async function CategoryGrid() {
   const categories = await getActiveCategories()
 
   if (categories.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-mist">
-        Categories coming soon.
-      </p>
-    )
+    return <p className="py-8 text-center text-sm text-mist">Categories coming soon.</p>
   }
 
   return (

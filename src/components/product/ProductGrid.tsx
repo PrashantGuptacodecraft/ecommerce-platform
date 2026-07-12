@@ -19,12 +19,7 @@ export function ProductGrid({
   emptyDescription = 'Try adjusting your filters or check back later.',
 }: ProductGridProps) {
   if (products.length === 0) {
-    return (
-      <EmptyState
-        title={emptyMessage}
-        description={emptyDescription}
-      />
-    )
+    return <EmptyState title={emptyMessage} description={emptyDescription} />
   }
 
   return (

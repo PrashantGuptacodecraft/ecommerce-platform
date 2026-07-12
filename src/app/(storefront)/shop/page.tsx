@@ -53,10 +53,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     delete sanitisedQuery.maxPrice
   }
 
-  const [result, facets] = await Promise.all([
-    listProducts(sanitisedQuery),
-    getCatalogueFacets(),
-  ])
+  const [result, facets] = await Promise.all([listProducts(sanitisedQuery), getCatalogueFacets()])
 
   // Build searchParams string for Pagination (preserves filters during navigation)
   const activeParams: Record<string, string> = {}
@@ -65,7 +62,8 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   if (sanitisedQuery.colour) activeParams.colour = sanitisedQuery.colour
   if (sanitisedQuery.minPrice !== undefined) activeParams.minPrice = String(sanitisedQuery.minPrice)
   if (sanitisedQuery.maxPrice !== undefined) activeParams.maxPrice = String(sanitisedQuery.maxPrice)
-  if (sanitisedQuery.sort && sanitisedQuery.sort !== 'featured') activeParams.sort = sanitisedQuery.sort
+  if (sanitisedQuery.sort && sanitisedQuery.sort !== 'featured')
+    activeParams.sort = sanitisedQuery.sort
 
   return (
     <div className="py-10">
