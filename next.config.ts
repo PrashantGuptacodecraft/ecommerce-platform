@@ -9,9 +9,28 @@ import type { NextConfig } from 'next'
  * Milestone 3 — see docs/SECURITY_MODEL.md §4. They are intentionally NOT
  * present yet so that this milestone stays scoped to project init.
  *
- * Remote image patterns for the Supabase Storage bucket are added in the
- * Supabase-foundation milestone, once the project URL exists.
+ * Milestone 4: Supabase Storage remote image patterns added for product images.
  */
+
+function getSupabaseImagePatterns(): NextConfig['images'] {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl) return undefined
+  try {
+    const { hostname } = new URL(supabaseUrl)
+    return {
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname,
+          pathname: '/storage/v1/object/public/**',
+        },
+      ],
+    }
+  } catch {
+    return undefined
+  }
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Pin the workspace root to this project. Without it, Turbopack infers the
@@ -20,6 +39,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
+  images: getSupabaseImagePatterns(),
 }
 
 export default nextConfig

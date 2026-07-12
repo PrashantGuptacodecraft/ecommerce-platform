@@ -1,29 +1,17 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { FadeIn } from '@/components/motion/FadeIn'
 import { SlideUp } from '@/components/motion/SlideUp'
 import { RevealOnScroll } from '@/components/motion/RevealOnScroll'
-import { StaggerContainer, StaggerItem } from '@/components/motion/Stagger'
-import { ScaleOnHover } from '@/components/motion/ScaleOnHover'
 import { BagIcon, BoxIcon, CheckIcon } from '@/components/ui/icons'
 import { brand } from '@/config/brand'
-import { mainNav } from '@/config/navigation'
-
-// Refined storefront foundation. Real catalogue data (hero campaign, new
-// arrivals, featured/best-sellers from Supabase) is wired in Milestone 4; this
-// page establishes the visual system, motion, and section rhythm with
-// placeholder tiles (no mock product data). Category tiles use tonal blocks as
-// image placeholders.
-
-const categoryTones: Record<string, string> = {
-  '/shop': 'from-charcoal to-ink',
-  '/category/shirts': 'from-[#c9c2b6] to-[#a99f8d]',
-  '/category/t-shirts': 'from-[#b7bcc0] to-[#8a9196]',
-  '/category/trousers': 'from-[#c3b6a6] to-[#9c8a74]',
-  '/category/outerwear': 'from-[#a9a49c] to-[#7c766c]',
-}
+import { FeaturedProducts } from '@/components/storefront/FeaturedProducts'
+import { NewArrivals } from '@/components/storefront/NewArrivals'
+import { CategoryGrid } from '@/components/storefront/CategoryGrid'
 
 const reassurance = [
   {
@@ -42,6 +30,33 @@ const reassurance = [
     body: 'Pay your way — cards, UPI, or on delivery.',
   },
 ]
+
+function ProductsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="space-y-3">
+          <Skeleton className="aspect-[4/5] w-full rounded-lg" />
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CategoriesSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="space-y-3">
+          <Skeleton className="aspect-[4/5] w-full rounded-lg" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function HomePage() {
   return (
@@ -81,8 +96,28 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Shop by category */}
+      {/* Featured Collection — real data from Supabase */}
       <section className="py-20">
+        <Container>
+          <RevealOnScroll>
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <h2 className="font-serif text-2xl text-ink sm:text-3xl">Featured Collection</h2>
+              <Link
+                href="/shop?sort=featured"
+                className="text-sm text-slate underline-offset-4 hover:text-ink hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+          </RevealOnScroll>
+          <Suspense fallback={<ProductsSkeleton />}>
+            <FeaturedProducts limit={4} />
+          </Suspense>
+        </Container>
+      </section>
+
+      {/* Shop by category — real data from Supabase */}
+      <section className="border-y border-fog bg-white py-20">
         <Container>
           <RevealOnScroll>
             <div className="mb-10 flex items-end justify-between gap-4">
@@ -95,42 +130,46 @@ export default function HomePage() {
               </Link>
             </div>
           </RevealOnScroll>
+          <Suspense fallback={<CategoriesSkeleton />}>
+            <CategoryGrid />
+          </Suspense>
+        </Container>
+      </section>
 
-          <StaggerContainer className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-5">
-            {mainNav.map((item) => (
-              <StaggerItem key={item.href}>
-                <Link href={item.href} className="group block">
-                  <ScaleOnHover>
-                    <div
-                      className={`aspect-[4/5] rounded-lg bg-gradient-to-br ${categoryTones[item.href] ?? 'from-fog to-mist'}`}
-                    />
-                  </ScaleOnHover>
-                  <p className="mt-3 text-sm font-medium text-charcoal transition-colors group-hover:text-ink">
-                    {item.label}
-                  </p>
-                </Link>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
+      {/* New Arrivals — real data from Supabase */}
+      <section className="py-20">
+        <Container>
+          <RevealOnScroll>
+            <div className="mb-10 flex items-end justify-between gap-4">
+              <h2 className="font-serif text-2xl text-ink sm:text-3xl">New Arrivals</h2>
+              <Link
+                href="/shop?sort=new"
+                className="text-sm text-slate underline-offset-4 hover:text-ink hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+          </RevealOnScroll>
+          <Suspense fallback={<ProductsSkeleton />}>
+            <NewArrivals limit={4} />
+          </Suspense>
         </Container>
       </section>
 
       {/* Reassurance */}
       <section className="border-y border-fog bg-white py-16">
         <Container>
-          <StaggerContainer className="grid gap-8 sm:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-3">
             {reassurance.map((item) => (
-              <StaggerItem key={item.title}>
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 text-accent">{item.icon}</span>
-                  <div>
-                    <p className="text-sm font-medium text-ink">{item.title}</p>
-                    <p className="mt-1 text-sm text-slate">{item.body}</p>
-                  </div>
+              <div key={item.title} className="flex items-start gap-3">
+                <span className="mt-0.5 text-accent">{item.icon}</span>
+                <div>
+                  <p className="text-sm font-medium text-ink">{item.title}</p>
+                  <p className="mt-1 text-sm text-slate">{item.body}</p>
                 </div>
-              </StaggerItem>
+              </div>
             ))}
-          </StaggerContainer>
+          </div>
         </Container>
       </section>
 
