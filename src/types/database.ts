@@ -114,6 +114,7 @@ export type Database = {
           created_at: string
           idempotency_key: string
           mutation_type: string
+          payload_hash: string | null
           result: Json | null
         }
         Insert: {
@@ -121,6 +122,7 @@ export type Database = {
           created_at?: string
           idempotency_key: string
           mutation_type: string
+          payload_hash?: string | null
           result?: Json | null
         }
         Update: {
@@ -128,6 +130,7 @@ export type Database = {
           created_at?: string
           idempotency_key?: string
           mutation_type?: string
+          payload_hash?: string | null
           result?: Json | null
         }
         Relationships: [
@@ -551,6 +554,73 @@ export type Database = {
           },
         ]
       }
+      product_image_upload_intents: {
+        Row: {
+          admin_id: string
+          created_at: string
+          created_image_id: string | null
+          declared_mime_type: string
+          declared_size_bytes: number
+          expires_at: string
+          finalized_at: string | null
+          id: string
+          object_path: string
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          created_image_id?: string | null
+          declared_mime_type: string
+          declared_size_bytes: number
+          expires_at: string
+          finalized_at?: string | null
+          id?: string
+          object_path: string
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          created_image_id?: string | null
+          declared_mime_type?: string
+          declared_size_bytes?: number
+          expires_at?: string
+          finalized_at?: string | null
+          id?: string
+          object_path?: string
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_image_upload_intents_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_image_upload_intents_created_image_id_fkey"
+            columns: ["created_image_id"]
+            isOneToOne: false
+            referencedRelation: "product_images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_image_upload_intents_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_images: {
         Row: {
           alt_text: string | null
@@ -970,8 +1040,35 @@ export type Database = {
       }
     }
     Functions: {
+      create_product_image_upload_intent: {
+        Args: {
+          p_declared_mime_type: string
+          p_declared_size_bytes: number
+          p_idempotency_key: string
+          p_product_id: string
+        }
+        Returns: {
+          expires_at: string
+          intent_id: string
+          object_path: string
+        }[]
+      }
       delete_product_image_transaction: {
         Args: { p_idempotency_key: string; p_image_id: string }
+        Returns: string
+      }
+      finalize_product_image_upload: {
+        Args: {
+          p_admin_id: string
+          p_alt_text: string
+          p_height: number
+          p_idempotency_key: string
+          p_intent_id: string
+          p_make_primary: boolean
+          p_validated_mime_type: string
+          p_validated_size_bytes: number
+          p_width: number
+        }
         Returns: string
       }
       is_active_admin: { Args: never; Returns: boolean }
@@ -1005,9 +1102,29 @@ export type Database = {
         }
         Returns: number
       }
+      save_category_transaction: {
+        Args: {
+          p_category_id: string
+          p_expected_updated_at: string
+          p_idempotency_key: string
+          p_payload: Json
+          p_payload_version: number
+        }
+        Returns: Json
+      }
       save_product_tree: {
         Args: {
           p_expected_updated_at: string
+          p_idempotency_key: string
+          p_payload: Json
+          p_payload_version: number
+          p_product_id: string
+        }
+        Returns: Json
+      }
+      update_product_images_transaction: {
+        Args: {
+          p_expected_product_updated_at: string
           p_idempotency_key: string
           p_payload: Json
           p_payload_version: number

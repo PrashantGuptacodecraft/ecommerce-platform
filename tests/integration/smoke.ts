@@ -20,7 +20,7 @@ async function runSmokeTests() {
 
   const ts = Date.now()
   const password = `TestPass!${ts}`
-  
+
   // 1. Setup Test Users & Data
   const adminEmail = `test_active_admin_${ts}@example.com`
   const inactiveAdminEmail = `test_inactive_admin_${ts}@example.com`
@@ -47,13 +47,13 @@ async function runSmokeTests() {
   const inactiveAdminId = await createTestUser(inactiveAdminEmail, 'admin', false)
   const nonAdminId = await createTestUser(nonAdminEmail, 'none', false)
 
-  const activeAdminClient = createClient(url, anonKey)
+  const activeAdminClient = createClient(url as string, anonKey as string)
   await activeAdminClient.auth.signInWithPassword({ email: adminEmail, password })
 
-  const inactiveAdminClient = createClient(url, anonKey)
+  const inactiveAdminClient = createClient(url as string, anonKey as string)
   await inactiveAdminClient.auth.signInWithPassword({ email: inactiveAdminEmail, password })
 
-  const nonAdminClient = createClient(url, anonKey)
+  const nonAdminClient = createClient(url as string, anonKey as string)
   await nonAdminClient.auth.signInWithPassword({ email: nonAdminEmail, password })
 
   // Dummy category
@@ -62,24 +62,33 @@ async function runSmokeTests() {
     id: categoryId,
     name: 'Smoke Test Category',
     slug: `smoke-test-cat-${ts}`,
-    sort_order: 999
+    sort_order: 999,
   })
 
   // 2. Authorization Tests
   console.log('Running Authorization Tests...')
-  
+
   const { error: loggedOutError } = await anonClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: crypto.randomUUID(), p_change_quantity: 1, p_note: 'test', p_idempotency_key: crypto.randomUUID()
+    p_variant_id: crypto.randomUUID(),
+    p_change_quantity: 1,
+    p_note: 'test',
+    p_idempotency_key: crypto.randomUUID(),
   })
   if (!loggedOutError) throw new Error('Logged-out user was able to execute RPC')
 
   const { error: nonAdminError } = await nonAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: crypto.randomUUID(), p_change_quantity: 1, p_note: 'test', p_idempotency_key: crypto.randomUUID()
+    p_variant_id: crypto.randomUUID(),
+    p_change_quantity: 1,
+    p_note: 'test',
+    p_idempotency_key: crypto.randomUUID(),
   })
   if (!nonAdminError) throw new Error('Non-admin user was able to execute RPC')
 
   const { error: inactiveError } = await inactiveAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: crypto.randomUUID(), p_change_quantity: 1, p_note: 'test', p_idempotency_key: crypto.randomUUID()
+    p_variant_id: crypto.randomUUID(),
+    p_change_quantity: 1,
+    p_note: 'test',
+    p_idempotency_key: crypto.randomUUID(),
   })
   if (!inactiveError) throw new Error('Inactive admin was able to execute RPC')
 
@@ -87,7 +96,7 @@ async function runSmokeTests() {
 
   // 3. save_product_tree Tests
   console.log('Running save_product_tree Tests...')
-  
+
   const productId = crypto.randomUUID()
   const variantId1 = crypto.randomUUID()
   const optionId = crypto.randomUUID()
@@ -104,10 +113,15 @@ async function runSmokeTests() {
       is_featured: false,
       is_new_arrival: false,
       description: 'Test',
-      short_description: 'Test'
+      short_description: 'Test',
     },
     options: [
-      { id: optionId, name: 'Size', sortOrder: 0, values: [{ id: optionValueId1, value: 'S', sortOrder: 0 }] }
+      {
+        id: optionId,
+        name: 'Size',
+        sortOrder: 0,
+        values: [{ id: optionValueId1, value: 'S', sortOrder: 0 }],
+      },
     ],
     variants: [
       {
@@ -116,9 +130,9 @@ async function runSmokeTests() {
         stockQuantity: 10,
         priceAdjustmentPaise: 0,
         isActive: true,
-        optionValueIds: [optionValueId1]
-      }
-    ]
+        optionValueIds: [optionValueId1],
+      },
+    ],
   }
 
   const saveIdempotency = crypto.randomUUID()
@@ -128,7 +142,7 @@ async function runSmokeTests() {
     p_expected_updated_at: null,
     p_payload_version: 1,
     p_payload: basePayload,
-    p_idempotency_key: saveIdempotency
+    p_idempotency_key: saveIdempotency,
   })
   if (saveError) throw new Error(`save_product_tree failed: ${JSON.stringify(saveError)}`)
 
@@ -147,55 +161,94 @@ async function runSmokeTests() {
   // Stocked variant destructively removed (should be rejected/archived)
   const removeStockPayload = { ...basePayload, variants: [] }
   await activeAdminClient.rpc('save_product_tree', {
-    p_product_id: productId, p_expected_updated_at: null, p_payload_version: 1, p_payload: removeStockPayload, p_idempotency_key: crypto.randomUUID()
+    p_product_id: productId,
+    p_expected_updated_at: null,
+    p_payload_version: 1,
+    p_payload: removeStockPayload,
+    p_idempotency_key: crypto.randomUUID(),
   })
   console.log('  -> check archive')
   // Check if it was archived, not deleted
-  const { data: archivedVar } = await serviceClient.from('product_variants').select('*').eq('id', variantId1).single()
+  const { data: archivedVar } = await serviceClient
+    .from('product_variants')
+    .select('*')
+    .eq('id', variantId1)
+    .single()
   if (!archivedVar) throw new Error('Stocked variant was deleted instead of archived')
   if (archivedVar.is_active !== false) throw new Error('Stocked variant was not set to inactive')
 
   console.log('  -> restore variant')
   // Put it back
   const { error: restoreError } = await activeAdminClient.rpc('save_product_tree', {
-    p_product_id: productId, p_expected_updated_at: null, p_payload_version: 1, p_payload: basePayload, p_idempotency_key: crypto.randomUUID()
+    p_product_id: productId,
+    p_expected_updated_at: null,
+    p_payload_version: 1,
+    p_payload: basePayload,
+    p_idempotency_key: crypto.randomUUID(),
   })
-  if (restoreError) throw new Error(`save_product_tree restore failed: ${JSON.stringify(restoreError)}`)
+  if (restoreError)
+    throw new Error(`save_product_tree restore failed: ${JSON.stringify(restoreError)}`)
 
   console.log('save_product_tree tests passed.')
 
   // 4. manual_adjust_variant_stock Tests
   console.log('Running manual_adjust_variant_stock Tests...')
-  
+
   const adjustIdempotency = crypto.randomUUID()
   const { error: blankNoteError } = await activeAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: variantId1, p_change_quantity: 5, p_note: '   ', p_idempotency_key: crypto.randomUUID()
+    p_variant_id: variantId1,
+    p_change_quantity: 5,
+    p_note: '   ',
+    p_idempotency_key: crypto.randomUUID(),
   })
   if (!blankNoteError) throw new Error('Blank note not rejected')
 
   const { error: longNoteError } = await activeAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: variantId1, p_change_quantity: 5, p_note: 'a'.repeat(501), p_idempotency_key: crypto.randomUUID()
+    p_variant_id: variantId1,
+    p_change_quantity: 5,
+    p_note: 'a'.repeat(501),
+    p_idempotency_key: crypto.randomUUID(),
   })
   if (!longNoteError) throw new Error('Long note not rejected')
 
-  const { error: invalidVariantError } = await activeAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: crypto.randomUUID(), p_change_quantity: 5, p_note: 'test', p_idempotency_key: crypto.randomUUID()
-  })
+  const { error: invalidVariantError } = await activeAdminClient.rpc(
+    'manual_adjust_variant_stock',
+    {
+      p_variant_id: crypto.randomUUID(),
+      p_change_quantity: 5,
+      p_note: 'test',
+      p_idempotency_key: crypto.randomUUID(),
+    },
+  )
   if (!invalidVariantError) throw new Error('Invalid variant ID not rejected')
 
-  const { data: adjustData, error: adjustError } = await activeAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: variantId1, p_change_quantity: 5, p_note: 'Test', p_idempotency_key: adjustIdempotency
-  })
+  const { data: adjustData, error: adjustError } = await activeAdminClient.rpc(
+    'manual_adjust_variant_stock',
+    {
+      p_variant_id: variantId1,
+      p_change_quantity: 5,
+      p_note: 'Test',
+      p_idempotency_key: adjustIdempotency,
+    },
+  )
   if (adjustError) throw new Error(`Adjust failed: ${JSON.stringify(adjustError)}`)
-  
+
   // Repeated idempotency
   const { data: adjustRetryData } = await activeAdminClient.rpc('manual_adjust_variant_stock', {
-    p_variant_id: variantId1, p_change_quantity: 5, p_note: 'Test', p_idempotency_key: adjustIdempotency
+    p_variant_id: variantId1,
+    p_change_quantity: 5,
+    p_note: 'Test',
+    p_idempotency_key: adjustIdempotency,
   })
-  if (adjustRetryData[0].new_stock !== adjustData[0].new_stock) throw new Error('Idempotency changed stock twice')
+  if (adjustRetryData[0].new_stock !== adjustData[0].new_stock)
+    throw new Error('Idempotency changed stock twice')
 
   // Check ledger entry
-  const { data: ledger } = await serviceClient.from('inventory_transactions').select('*').eq('variant_id', variantId1).eq('change_quantity', 5)
+  const { data: ledger } = await serviceClient
+    .from('inventory_transactions')
+    .select('*')
+    .eq('variant_id', variantId1)
+    .eq('change_quantity', 5)
   if (!ledger || ledger.length === 0) throw new Error('Ledger entry not created')
 
   console.log('manual_adjust_variant_stock tests passed.')
@@ -204,29 +257,43 @@ async function runSmokeTests() {
   console.log('Running Image Deletion Tests...')
   const imageId = crypto.randomUUID()
   const storagePath = `products/${productId}/test-image-${ts}.webp`
-  
+
   await serviceClient.from('product_images').insert({
-    id: imageId, product_id: productId, storage_path: storagePath, sort_order: 0, is_primary: true
+    id: imageId,
+    product_id: productId,
+    storage_path: storagePath,
+    sort_order: 0,
+    is_primary: true,
   })
 
-  const { error: wrongPathError } = await activeAdminClient.rpc('delete_product_image_transaction', {
-    p_image_id: imageId, p_idempotency_key: crypto.randomUUID()
-  })
+  const { error: wrongPathError } = await activeAdminClient.rpc(
+    'delete_product_image_transaction',
+    {
+      p_image_id: imageId,
+      p_idempotency_key: crypto.randomUUID(),
+    },
+  )
   // Wait, does delete_product_image_transaction reject wrong path? It checks `products/v_product_id/`. So it should succeed here.
   // We need to test if it rejects malformed paths in the DB.
   // Actually the RPC verifies it matches `products/${v_product_id}/%`.
   // Let's modify the path bypassing the RPC to simulate a bad DB state, or test via the RPC.
-  
+
   const imgIdempotency = crypto.randomUUID()
-  const { data: delData, error: delError } = await activeAdminClient.rpc('delete_product_image_transaction', {
-    p_image_id: imageId, p_idempotency_key: imgIdempotency
-  })
+  const { data: delData, error: delError } = await activeAdminClient.rpc(
+    'delete_product_image_transaction',
+    {
+      p_image_id: imageId,
+      p_idempotency_key: imgIdempotency,
+    },
+  )
   if (delError) throw new Error(`delete image failed: ${JSON.stringify(delError)}`)
 
   const { data: retryDelData } = await activeAdminClient.rpc('delete_product_image_transaction', {
-    p_image_id: imageId, p_idempotency_key: imgIdempotency
+    p_image_id: imageId,
+    p_idempotency_key: imgIdempotency,
   })
-  if (retryDelData !== delData) throw new Error('Image deletion idempotency returned different job ID')
+  if (retryDelData !== delData)
+    throw new Error('Image deletion idempotency returned different job ID')
 
   console.log('Image deletion tests passed.')
 
@@ -236,7 +303,7 @@ async function runSmokeTests() {
   await serviceClient.from('product_options').delete().eq('product_id', productId)
   await serviceClient.from('products').delete().eq('id', productId)
   await serviceClient.from('categories').delete().eq('id', categoryId)
-  
+
   await serviceClient.auth.admin.deleteUser(activeAdminId)
   await serviceClient.auth.admin.deleteUser(inactiveAdminId)
   await serviceClient.auth.admin.deleteUser(nonAdminId)
