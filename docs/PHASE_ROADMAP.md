@@ -15,7 +15,7 @@ tables, new provider implementations, and new UI are added.
 | Payments | Razorpay (test mode) + Cash on Delivery, full signature + webhook verification |
 | Shipping | Flat rate + free-shipping threshold, manual courier/tracking entry |
 | Inventory | Variant-level stock, transactional reservation, inventory_transactions ledger |
-| Admin | Custom secure admin panel: products, images, variants, orders, settings, basic dashboard |
+| Admin | Custom secure admin panel: M5A/M5B (transactional mutations + image uploads), M5C (secure React UI) |
 | Email | Order placed / payment success / COD received / cancelled / shipped |
 | Security | RLS everywhere, security headers, rate limiting, audit log, strict auth |
 | SEO | Metadata, sitemap, robots, structured data, canonical URLs |

@@ -466,3 +466,21 @@ files, and the design system were preserved.
   data, SEO metadata/sitemap/robots/JSON-LD.
 - Milestones 5â€“16 per `docs/phases/PHASE_1_IMPLEMENTATION_CHECKLIST.md`.
 - **Stopping after Milestone 3; awaiting go-ahead for Milestone 4.**
+
+---
+
+## Milestone 4 — Product catalogue read path — 2026-07-12
+(Completed in a previous session)
+
+## Milestone 5A — Transactional Admin Mutation Foundation — 2026-07-12
+
+### Completed
+- Migrations 0009 and 0010 adding transactional admin mutations for categories, products, images, and variants.
+
+## Milestone 5B — Secure Admin Image Uploads & Integrations — 2026-07-12
+
+### Completed
+- Migration 0011 adding idempotency, image intents, and upload finalization flows.
+- Migration 0012 fixing the updated_at issue on product_images.
+- Full live smoke tests verifying all backend RPCs for M5.
+
