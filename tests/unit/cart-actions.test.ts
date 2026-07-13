@@ -106,7 +106,7 @@ describe('Cart Actions', () => {
       'session-token-xyz',
       '123e4567-e89b-12d3-a456-426614174000',
       2,
-      expect.any(String)
+      expect.any(String),
     )
   })
 

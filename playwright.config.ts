@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+import path from 'path'
+
+dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 
 /**
  * Playwright e2e configuration.
@@ -13,6 +17,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: 'html',
   use: {
@@ -33,7 +38,10 @@ export default defineConfig({
     command: 'npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    stdout: 'ignore',
+    stdout: 'pipe',
     stderr: 'pipe',
+    env: {
+      NODE_ENV: 'production',
+    },
   },
 })

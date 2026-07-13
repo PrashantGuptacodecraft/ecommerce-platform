@@ -12,7 +12,7 @@ import { FormError } from '@/components/ui/FormError'
 import type { CartItemDetail } from '../queries'
 
 export function CartLineItem({ item }: { item: CartItemDetail }) {
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const [quantity, setQuantity] = useState(item.quantity)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,12 +21,13 @@ export function CartLineItem({ item }: { item: CartItemDetail }) {
     setQuantity(item.quantity)
   }, [item.quantity])
 
-  const handleQuantityChange = (newQty: number) => {
+  const handleQuantityChange = async (newQty: number) => {
     if (newQty < 1 || newQty > 99) return
     setQuantity(newQty)
     setError(null)
+    setIsPending(true)
 
-    startTransition(async () => {
+    try {
       const formData = new FormData()
       formData.append('variantId', item.variant_id)
       formData.append('quantity', newQty.toString())
@@ -36,12 +37,16 @@ export function CartLineItem({ item }: { item: CartItemDetail }) {
         setError(mapCartError(res.error))
         setQuantity(item.quantity) // revert
       }
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
-  const handleRemove = () => {
+  const handleRemove = async () => {
     setError(null)
-    startTransition(async () => {
+    setIsPending(true)
+
+    try {
       const formData = new FormData()
       formData.append('variantId', item.variant_id)
 
@@ -49,7 +54,9 @@ export function CartLineItem({ item }: { item: CartItemDetail }) {
       if (!res.success && res.error) {
         setError(mapCartError(res.error))
       }
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   const isUnavailable = item.state === 'unavailable'

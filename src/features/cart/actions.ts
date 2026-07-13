@@ -93,9 +93,11 @@ export async function updateCartItemQuantityAction(
       return { success: false, error: 'INSUFFICIENT_STOCK' }
     }
 
+    console.log('[updateCartItemQuantityAction] updating repo')
     await cartRepository.updateCartItemQuantity(cartId, variantId, quantity)
-
+    console.log('[updateCartItemQuantityAction] updated repo, revalidating')
     revalidatePath('/', 'layout')
+    console.log('[updateCartItemQuantityAction] revalidated, returning')
     return { success: true }
   } catch (error: any) {
     console.error('Update cart item error:', error)

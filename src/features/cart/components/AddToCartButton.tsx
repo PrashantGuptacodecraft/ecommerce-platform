@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import { addCartItemAction } from '../actions'
 import { mapCartError } from '../errors'
@@ -13,68 +14,59 @@ type AddToCartButtonProps = {
   className?: string
 }
 
+function SubmitButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus()
+  return (
+    <Button
+      type="submit"
+      disabled={disabled || pending}
+      className="w-full h-14 text-lg"
+      data-testid="add-to-cart-button"
+    >
+      {pending ? 'Adding...' : 'Add to Cart'}
+    </Button>
+  )
+}
+
 export function AddToCartButton({
   variantId,
   stockQuantity,
   isActive,
   className,
 }: AddToCartButtonProps) {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+  const [state, formAction] = useFormState(addCartItemAction, { success: false })
   const pendingIdempotencyKeyRef = useRef<string | null>(null)
+  const [currentIdempotencyKey, setCurrentIdempotencyKey] = useState<string>('')
 
-  const handleAdd = () => {
-    if (!variantId) {
-      setError('Please select a variant before adding to cart.')
-      return
+  useEffect(() => {
+    if (state.success) {
+      pendingIdempotencyKeyRef.current = null
+      setCurrentIdempotencyKey(crypto.randomUUID())
     }
+  }, [state.success])
 
-    if (!isActive) {
-      setError('This product is no longer available.')
-      return
-    }
-
-    if (stockQuantity === 0) {
-      setError('This item is out of stock.')
-      return
-    }
-
-    // Generate a new idempotency key if we don't already have one pending from a failed retry
+  useEffect(() => {
     if (!pendingIdempotencyKeyRef.current) {
       pendingIdempotencyKeyRef.current = crypto.randomUUID()
     }
-    const currentIdempotencyKey = pendingIdempotencyKeyRef.current
+    setCurrentIdempotencyKey(pendingIdempotencyKeyRef.current)
+  }, [])
 
-    setError(null)
-    startTransition(async () => {
-      const formData = new FormData()
-      formData.append('variantId', variantId)
-      formData.append('quantity', '1')
-      formData.append('idempotencyKey', currentIdempotencyKey)
-
-      const res = await addCartItemAction({ success: false }, formData)
-
-      if (res.success) {
-        // Clear the key so the next click is a new intentional add
-        pendingIdempotencyKeyRef.current = null
-      } else if (res.error) {
-        setError(mapCartError(res.error))
-      }
-    })
-  }
-
-  const disabled = !isActive || stockQuantity === 0 || isPending
+  const disabled = !isActive || stockQuantity === 0 || !variantId
 
   return (
-    <div className={className}>
-      <Button onClick={handleAdd} disabled={disabled} className="w-full h-14 text-lg">
-        {isPending ? 'Adding...' : stockQuantity === 0 ? 'Out of Stock' : 'Add to Cart'}
-      </Button>
-      {error && (
+    <form action={formAction} className={className}>
+      <input type="hidden" name="variantId" value={variantId || ''} />
+      <input type="hidden" name="quantity" value="1" />
+      <input type="hidden" name="idempotencyKey" value={currentIdempotencyKey} />
+
+      <SubmitButton disabled={disabled} />
+
+      {state.error && (
         <div className="mt-3">
-          <FormError>{error}</FormError>
+          <FormError>{mapCartError(state.error)}</FormError>
         </div>
       )}
-    </div>
+    </form>
   )
 }
