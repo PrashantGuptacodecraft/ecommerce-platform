@@ -13,6 +13,8 @@ import { type OptionGroup } from './OptionGroupEditor'
 import { type VariantNode } from './VariantCombinationList'
 import { useUnsavedChanges } from '@/lib/hooks/use-unsaved-changes'
 import { type ProductTreePayload } from '@/features/admin/validation/product'
+import { ImageManager } from '@/features/admin/images/components/ImageManager'
+import type { ProductImage } from '@/features/products/types'
 
 type CategoryNode = { id: string; name: string }
 
@@ -20,6 +22,7 @@ export type ProductFormProps = {
   product?: ProductTreePayload['product'] & { id: string; updated_at: string }
   existingOptions?: any[]
   existingVariants?: any[]
+  images?: ProductImage[]
   categories: CategoryNode[]
 }
 
@@ -27,6 +30,7 @@ export function ProductForm({
   product,
   existingOptions,
   existingVariants,
+  images,
   categories,
 }: ProductFormProps) {
   const router = useRouter()
@@ -195,17 +199,35 @@ export function ProductForm({
       />
 
       {!isNewProduct && (
-        <VariantEditor
-          options={options}
-          variants={variants}
-          onChange={(newOpts, newVars) => {
-            setOptions(newOpts)
-            setVariants(newVars)
-            setIsDirty(true)
-            setError(null)
-          }}
-          disabled={isPending}
-        />
+        <div className="space-y-6">
+          {/* Variants Section */}
+          <div className="bg-white p-6 rounded-md shadow-sm border border-fog/50">
+            <VariantEditor
+              options={options}
+              variants={variants}
+              onChange={(newOpts, newVars) => {
+                setOptions(newOpts)
+                setVariants(newVars)
+                setIsDirty(true)
+                setError(null)
+              }}
+              disabled={isPending}
+            />
+          </div>
+
+          {/* Images Section (Only for existing products) */}
+          {product && (
+            <div className="bg-white p-6 rounded-md shadow-sm border border-fog/50">
+              <h2 className="text-lg font-semibold text-ink mb-4">Product Images</h2>
+              <ImageManager 
+                productId={product.id}
+                initialImages={images || []}
+                initialExpectedUpdatedAt={expectedUpdatedAt || ''}
+                onUpdatedAtChange={(newDate) => setExpectedUpdatedAt(newDate)}
+              />
+            </div>
+          )}
+        </div>
       )}
 
       {/* Sticky Mobile Save Action */}
