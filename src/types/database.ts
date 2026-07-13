@@ -170,6 +170,38 @@ export type Database = {
         }
         Relationships: []
       }
+      cart_idempotency_keys: {
+        Row: {
+          created_at: string
+          idempotency_key: string
+          operation_hash: string
+          result: Json
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          idempotency_key: string
+          operation_hash: string
+          result: Json
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          idempotency_key?: string
+          operation_hash?: string
+          result?: Json
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_idempotency_keys_session_token_fkey"
+            columns: ["session_token"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["session_token"]
+          },
+        ]
+      }
       cart_items: {
         Row: {
           cart_id: string
@@ -1129,6 +1161,15 @@ export type Database = {
           p_payload: Json
           p_payload_version: number
           p_product_id: string
+        }
+        Returns: Json
+      }
+      upsert_cart_item_atomic: {
+        Args: {
+          p_idempotency_key: string
+          p_quantity: number
+          p_session_token: string
+          p_variant_id: string
         }
         Returns: Json
       }

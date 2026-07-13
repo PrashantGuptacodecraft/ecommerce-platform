@@ -8,15 +8,16 @@ import { MobileDrawerNav } from '@/components/layout/MobileDrawerNav'
 import { brand } from '@/config/brand'
 import { mainNav } from '@/config/navigation'
 
+import { CartBadge } from '@/features/cart/components/CartBadge'
+import { CartDrawer } from '@/features/cart/components/CartDrawer'
+import type { CartDetail } from '@/features/cart/queries'
+
 const iconButton =
   'inline-flex size-11 items-center justify-center rounded-md text-charcoal transition-colors hover:bg-ink/5'
 
-/**
- * Sticky storefront header: mobile menu trigger + wordmark + desktop nav +
- * search/cart actions. Cart count wiring arrives with the cart (Milestone 5).
- */
-export function Header() {
+export function Header({ cart }: { cart: CartDetail | null }) {
   const [navOpen, setNavOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-[var(--z-header)] border-b border-fog/80 bg-paper/85 backdrop-blur">
@@ -55,14 +56,17 @@ export function Header() {
             <Link href="/search" aria-label="Search" className={iconButton}>
               <SearchIcon className="size-5" />
             </Link>
-            <Link href="/cart" aria-label="Cart" className={iconButton}>
-              <BagIcon className="size-5" />
-            </Link>
+            <CartBadge
+              totalItems={cart?.totalItems || 0}
+              className={iconButton}
+              onClick={() => setCartOpen(true)}
+            />
           </div>
         </div>
       </Container>
 
       <MobileDrawerNav open={navOpen} onClose={() => setNavOpen(false)} />
+      <CartDrawer cart={cart} isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   )
 }
