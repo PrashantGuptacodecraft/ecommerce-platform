@@ -6,6 +6,20 @@ import { revalidatePath } from 'next/cache'
 import { categorySchema } from '../validation/category'
 import { mapAdminMutationError, getSafeErrorMessage } from '../errors/map-admin-mutation-error'
 
+export type SaveCategoryArgs = {
+  categoryId?: string
+  expectedUpdatedAt?: string
+  payloadVersion: number
+  payload: {
+    name: string
+    slug: string
+    description: string | null
+    sort_order: number
+    is_active: boolean
+  }
+  idempotencyKey: string
+}
+
 export type CategoryActionState = {
   success: boolean
   error?: string
@@ -13,27 +27,11 @@ export type CategoryActionState = {
   timestamp?: number
 }
 
-export async function saveCategoryAction(
-  prevState: CategoryActionState,
-  formData: FormData,
-): Promise<CategoryActionState> {
+export async function saveCategoryTransactionAction(args: SaveCategoryArgs): Promise<CategoryActionState> {
   await requireAdmin()
   const supabase = await createClient()
 
-  // 1. Parse and validate
-  const rawData = {
-    name: formData.get('name'),
-    slug: formData.get('slug'),
-    description: formData.get('description'),
-    sort_order: parseInt((formData.get('sort_order') as string) || '0', 10),
-    is_active: formData.get('is_active') === 'true',
-  }
-
-  const categoryId = formData.get('category_id') as string | null
-  const expectedUpdatedAt = formData.get('expected_updated_at') as string | null
-  const idempotencyKey = formData.get('idempotency_key') as string
-
-  const validated = categorySchema.safeParse(rawData)
+  const validated = categorySchema.safeParse(args.payload)
 
   if (!validated.success) {
     return {
@@ -46,11 +44,11 @@ export async function saveCategoryAction(
 
   // 2. Call RPC
   const { error } = await supabase.rpc('save_category_transaction', {
-    p_category_id: (categoryId || null) as any,
-    p_expected_updated_at: (expectedUpdatedAt || null) as any,
-    p_payload_version: 1,
+    p_category_id: (args.categoryId || null) as any,
+    p_expected_updated_at: (args.expectedUpdatedAt || null) as any,
+    p_payload_version: args.payloadVersion,
     p_payload: validated.data,
-    p_idempotency_key: idempotencyKey,
+    p_idempotency_key: args.idempotencyKey,
   })
 
   if (error) {
@@ -62,13 +60,15 @@ export async function saveCategoryAction(
   }
 
   // 3. Cache Invalidation
-  if (categoryId) {
+  revalidatePath('/admin/categories')
+  
+  if (args.categoryId) {
     revalidatePath(`/category/${validated.data.slug}`)
   }
   revalidatePath('/shop')
   revalidatePath('/')
 
-  if (categoryId || validated.data.is_active) {
+  if (args.categoryId || validated.data.is_active) {
     revalidatePath('/sitemap.xml')
   }
 
