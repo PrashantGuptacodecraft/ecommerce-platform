@@ -30,13 +30,25 @@ export default async function AdminDashboardPage() {
         <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
           <ul className="divide-y divide-gray-200">
             {metrics.recentProducts.map((p) => (
-              <li key={p.id} className="p-4 hover:bg-gray-50 flex justify-between items-center">
+              <li
+                key={p.id}
+                className="p-4 hover:bg-gray-50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
+              >
                 <div>
                   <div className="font-medium">{p.name}</div>
                   <div className="text-sm text-gray-500">{p.slug}</div>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(p.updated_at).toLocaleDateString()}
+                <div className="flex justify-between sm:justify-end items-center gap-4 w-full sm:w-auto">
+                  <div className="text-sm text-gray-500">
+                    {new Date(p.updated_at).toLocaleDateString()}
+                  </div>
+                  <a
+                    href={`/admin/products/${p.id}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium text-sm min-h-[44px] min-w-[44px] flex items-center justify-center focus:ring-2 focus:ring-blue-500 rounded"
+                    aria-label={`Edit ${p.name}`}
+                  >
+                    Edit
+                  </a>
                 </div>
               </li>
             ))}
