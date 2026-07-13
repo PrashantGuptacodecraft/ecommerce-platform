@@ -7,7 +7,13 @@ import { getCheckoutErrorMessage } from '@/features/checkout/errors'
 import { Button } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 
-export function CheckoutForm({ cartFingerprint }: { cartFingerprint: string }) {
+export function CheckoutForm({
+  cartFingerprint,
+  expectedTotalPaise,
+}: {
+  cartFingerprint: string
+  expectedTotalPaise: number
+}) {
   const router = useRouter()
   const [state, action, isPending] = useActionState(submitCheckoutAction, { success: false })
   const [idempotencyKey] = useState(() => crypto.randomUUID())
@@ -22,7 +28,7 @@ export function CheckoutForm({ cartFingerprint }: { cartFingerprint: string }) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     formData.append('idempotencyKey', idempotencyKey)
-    
+
     // Create a payload hash from address + cart fingerprint
     const addressString = `${formData.get('name')}|${formData.get('email')}|${formData.get('phone')}|${formData.get('addressLine1')}|${formData.get('postalCode')}`
     const payloadHash = btoa(encodeURIComponent(`${addressString}|${cartFingerprint}`))
@@ -44,7 +50,15 @@ export function CheckoutForm({ cartFingerprint }: { cartFingerprint: string }) {
         <h2 className="text-xl font-medium tracking-tight">Payment Method</h2>
         <div className="p-4 border rounded-md bg-neutral-50/50">
           <label className="flex items-center space-x-3 cursor-pointer">
-            <input type="radio" name="paymentMethod" value="cod" defaultChecked className="w-4 h-4 text-neutral-900 border-neutral-300 focus:ring-neutral-900" />
+            <input type="hidden" name="payloadHash" value={cartFingerprint} />
+            <input type="hidden" name="expectedTotalPaise" value={expectedTotalPaise} />
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="cod"
+              defaultChecked
+              className="w-4 h-4 text-neutral-900 border-neutral-300 focus:ring-neutral-900"
+            />
             <span className="font-medium text-sm">Cash on Delivery (COD)</span>
           </label>
         </div>

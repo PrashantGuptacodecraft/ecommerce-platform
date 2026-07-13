@@ -29,7 +29,12 @@ export function CheckoutAddressFields({ errors }: Props) {
 
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="addressLine1">Address Line 1</Label>
-        <Input id="addressLine1" name="addressLine1" required aria-invalid={!!errors?.addressLine1} />
+        <Input
+          id="addressLine1"
+          name="addressLine1"
+          required
+          aria-invalid={!!errors?.addressLine1}
+        />
         {errors?.addressLine1 && <p className="text-sm text-red-500">{errors.addressLine1[0]}</p>}
       </div>
 

@@ -95,6 +95,7 @@ describe('Checkout Integration', () => {
       p_state: 'Test State',
       p_postal_code: '123456',
       p_notes: '',
+      p_expected_total_paise: 0,
     })
 
     expect(error).toBeNull()
@@ -127,6 +128,7 @@ describe('Checkout Integration', () => {
       p_state: 'OS',
       p_postal_code: '654321',
       p_notes: '',
+      p_expected_total_paise: 28900,
     })
 
     expect(data1.success).toBe(true)
@@ -134,7 +136,11 @@ describe('Checkout Integration', () => {
     expect(data1.subtotalPaise).toBe(21000) // (10000 + 500) * 2
 
     // Check stock was deducted (10 - 2 = 8)
-    const { data: v } = await serviceClient.from('product_variants').select('stock_quantity').eq('id', variantId).single()
+    const { data: v } = await serviceClient
+      .from('product_variants')
+      .select('stock_quantity')
+      .eq('id', variantId)
+      .single()
     expect(v!.stock_quantity).toBe(8)
 
     // Check cart was cleared
@@ -156,13 +162,18 @@ describe('Checkout Integration', () => {
       p_state: 'OS',
       p_postal_code: '654321',
       p_notes: '',
+      p_expected_total_paise: 21000,
     })
-    
+
     expect(data2.success).toBe(true)
     expect(data2.orderNumber).toBe(data1.orderNumber)
-    
+
     // Check stock didn't double-deduct
-    const { data: v2 } = await serviceClient.from('product_variants').select('stock_quantity').eq('id', variantId).single()
+    const { data: v2 } = await serviceClient
+      .from('product_variants')
+      .select('stock_quantity')
+      .eq('id', variantId)
+      .single()
     expect(v2!.stock_quantity).toBe(8)
 
     // 3rd request with same key, different payload
@@ -180,9 +191,73 @@ describe('Checkout Integration', () => {
       p_state: 'OS',
       p_postal_code: '654321',
       p_notes: '',
+      p_expected_total_paise: 21000,
     })
 
     expect(data3.success).toBe(false)
     expect(data3.error).toBe('IDEMPOTENCY_CONFLICT')
+  })
+
+  it('rolls back completely if a database error occurs after stock deduction', async () => {
+    // Add item to cart for new order
+    await serviceClient.from('cart_items').insert({
+      cart_id: cartId,
+      variant_id: variantId,
+      quantity: 1,
+    })
+
+    const idempotencyKey = crypto.randomUUID()
+    const currentStock = (
+      await serviceClient
+        .from('product_variants')
+        .select('stock_quantity')
+        .eq('id', variantId)
+        .single()
+    ).data!.stock_quantity
+
+    // Request with null name to intentionally trigger NOT NULL constraint on addresses
+    // This happens AFTER stock reservation loop
+    const { data: data4 } = await serviceClient.rpc('create_cod_order_atomic', {
+      p_session_token: sessionToken,
+      p_idempotency_key: idempotencyKey,
+      p_payload_hash: 'hash-fail',
+      p_name: null as any, // INTENTIONAL FAILURE
+      p_email: 'fail@example.com',
+      p_phone: '0987654321',
+      p_address_line1: '456 Fail St',
+      p_address_line2: '',
+      p_landmark: '',
+      p_city: 'Fail City',
+      p_state: 'FS',
+      p_postal_code: '654321',
+      p_notes: '',
+      p_expected_total_paise: 18400, // 10500 + 7900
+    })
+
+    // Expect generic failure safely mapped
+    expect(data4.success).toBe(false)
+    expect(data4.error).toBe('ORDER_CREATION_FAILED')
+
+    // 1. Verify no order remains
+    const { data: orders } = await serviceClient
+      .from('order_idempotency_keys')
+      .select('*')
+      .eq('idempotency_key', idempotencyKey)
+    expect(orders?.length).toBe(0)
+
+    // 2. Verify stock returns to original quantity
+    const { data: v } = await serviceClient
+      .from('product_variants')
+      .select('stock_quantity')
+      .eq('id', variantId)
+      .single()
+    expect(v!.stock_quantity).toBe(currentStock)
+
+    // 3. Verify cart remains unchanged
+    const { data: items } = await serviceClient.from('cart_items').select('*').eq('cart_id', cartId)
+    expect(items?.length).toBe(1)
+
+    // Clear cart manually to clean up
+    await serviceClient.from('cart_items').delete().eq('cart_id', cartId)
   })
 })

@@ -25,42 +25,70 @@ async function setupDeterministicProduct() {
   TEST_CATEGORY_SLUG = `e2e-cat-chk-${workerId}`
   TEST_PRODUCT_SLUG = `e2e-prod-chk-${workerId}`
 
-  const { data: cat } = await supabase.from('categories').insert({
-    name: `E2E Cat ${workerId}`,
-    slug: TEST_CATEGORY_SLUG,
-    description: 'Test',
-    is_active: true,
-  }).select('id').single()
+  const { data: cat } = await supabase
+    .from('categories')
+    .insert({
+      name: `E2E Cat ${workerId}`,
+      slug: TEST_CATEGORY_SLUG,
+      description: 'Test',
+      is_active: true,
+    })
+    .select('id')
+    .single()
   categoryId = cat!.id
 
-  const { data: prod } = await supabase.from('products').insert({
-    category_id: categoryId,
-    name: `E2E Prod Checkout ${workerId}`,
-    slug: TEST_PRODUCT_SLUG,
-    description: 'Test',
-    base_price_paise: 100000,
-    is_active: true,
-  }).select('id').single()
+  const { data: prod } = await supabase
+    .from('products')
+    .insert({
+      category_id: categoryId,
+      name: `E2E Prod Checkout ${workerId}`,
+      slug: TEST_PRODUCT_SLUG,
+      description: 'Test',
+      base_price_paise: 100000,
+      is_active: true,
+    })
+    .select('id')
+    .single()
   productId = prod!.id
 
-  const { data: opt1 } = await supabase.from('product_options').insert({ product_id: productId, name: 'Size', sort_order: 1 }).select('id').single()
-  const { data: opt2 } = await supabase.from('product_options').insert({ product_id: productId, name: 'Color', sort_order: 2 }).select('id').single()
+  const { data: opt1 } = await supabase
+    .from('product_options')
+    .insert({ product_id: productId, name: 'Size', sort_order: 1 })
+    .select('id')
+    .single()
+  const { data: opt2 } = await supabase
+    .from('product_options')
+    .insert({ product_id: productId, name: 'Color', sort_order: 2 })
+    .select('id')
+    .single()
   optionSizeId = opt1!.id
   optionColorId = opt2!.id
 
-  const { data: val1 } = await supabase.from('product_option_values').insert({ product_option_id: optionSizeId, value: 'L', sort_order: 1 }).select('id').single()
-  const { data: val2 } = await supabase.from('product_option_values').insert({ product_option_id: optionColorId, value: 'Red', sort_order: 1 }).select('id').single()
+  const { data: val1 } = await supabase
+    .from('product_option_values')
+    .insert({ product_option_id: optionSizeId, value: 'L', sort_order: 1 })
+    .select('id')
+    .single()
+  const { data: val2 } = await supabase
+    .from('product_option_values')
+    .insert({ product_option_id: optionColorId, value: 'Red', sort_order: 1 })
+    .select('id')
+    .single()
   sizeLId = val1!.id
   colorRedId = val2!.id
 
   const uniqueSku = 'E2E-CHK-' + crypto.randomUUID().split('-')[0]
-  const { data: vrnt } = await supabase.from('product_variants').insert({
-    product_id: productId,
-    sku: uniqueSku,
-    price_adjustment_paise: 0,
-    stock_quantity: 50,
-    is_active: true,
-  }).select('id').single()
+  const { data: vrnt } = await supabase
+    .from('product_variants')
+    .insert({
+      product_id: productId,
+      sku: uniqueSku,
+      price_adjustment_paise: 0,
+      stock_quantity: 50,
+      is_active: true,
+    })
+    .select('id')
+    .single()
   variantId = vrnt!.id
 
   await supabase.from('variant_option_values').insert([
@@ -125,8 +153,30 @@ test.describe('Checkout Flow', () => {
     await page.getByRole('button', { name: /Place Order/i }).click()
 
     // 5. Should redirect to success page
-    await expect(page).toHaveURL(/\/order\/success\/SN-\d{4}/, { timeout: 15000 })
-    await expect(page.getByText('Thank you for your order')).toBeVisible()
+    await expect(page).toHaveURL(/\/checkout\/success\/SN-\d{4}/, { timeout: 15000 })
+
+    // Verify the success-page heading is visible (using role)
+    const heading = page.getByRole('heading', { name: /thank you for your order/i })
+    await expect(heading).toBeVisible()
+
+    // Verify the returned order number is displayed
+    const url = page.url()
+    const orderNumberMatch = url.match(/(SN-\d{4})/)
+    const orderNumber = orderNumberMatch ? (orderNumberMatch[1] as string) : ''
+    await expect(page.getByText(orderNumber)).toBeVisible()
+
+    // Verify authoritative total is displayed
     await expect(page.getByText('Total Paid (COD)')).toBeVisible()
+
+    // Refresh the page and verify confirmation remains accessible
+    await page.reload()
+    await expect(heading).toBeVisible()
+
+    // Open the same URL in another browser context and verify unauthorized access is rejected (should 404)
+    const context2 = await page.context().browser()!.newContext()
+    const page2 = await context2.newPage()
+    const response = await page2.goto(url)
+    await expect(page2.getByText(/This page couldn.t be found/i)).toBeVisible()
+    await context2.close()
   })
 })

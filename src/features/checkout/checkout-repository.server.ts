@@ -16,7 +16,14 @@ export const checkoutRepository = {
     state: string
     postalCode: string
     notes?: string
-  }): Promise<{ success: boolean; error?: string; orderNumber?: string; orderId?: string; totalPaise?: number }> {
+    expectedTotalPaise: number
+  }): Promise<{
+    success: boolean
+    error?: string
+    orderNumber?: string
+    orderId?: string
+    totalPaise?: number
+  }> {
     const supabase = createAdminClient()
 
     const { data, error } = await supabase.rpc('create_cod_order_atomic', {
@@ -33,6 +40,7 @@ export const checkoutRepository = {
       p_state: params.state,
       p_postal_code: params.postalCode,
       p_notes: params.notes || '',
+      p_expected_total_paise: params.expectedTotalPaise,
     })
 
     if (error) {
@@ -40,6 +48,12 @@ export const checkoutRepository = {
       return { success: false, error: 'ORDER_CREATION_FAILED' }
     }
 
-    return data as { success: boolean; error?: string; orderNumber?: string; orderId?: string; totalPaise?: number }
-  }
+    return data as {
+      success: boolean
+      error?: string
+      orderNumber?: string
+      orderId?: string
+      totalPaise?: number
+    }
+  },
 }

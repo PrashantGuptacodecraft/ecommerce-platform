@@ -14,6 +14,7 @@ export const checkoutFormSchema = z.object({
   paymentMethod: z.literal('cod'), // Only COD for Milestone 7A
   idempotencyKey: z.string().uuid(),
   payloadHash: z.string().min(1),
+  expectedTotalPaise: z.coerce.number().min(0),
 })
 
 export type CheckoutFormData = z.infer<typeof checkoutFormSchema>

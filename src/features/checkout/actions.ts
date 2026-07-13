@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { getExistingCartSessionId } from '@/features/cart/cart-session.server'
 import { checkoutRepository } from './checkout-repository.server'
 import { checkoutFormSchema } from './validation'
@@ -16,6 +17,8 @@ export async function submitCheckoutAction(
   prevState: CheckoutActionResult,
   formData: FormData,
 ): Promise<CheckoutActionResult> {
+  let orderNumber: string | undefined
+
   try {
     const rawData = {
       name: formData.get('name'),
@@ -31,6 +34,7 @@ export async function submitCheckoutAction(
       paymentMethod: formData.get('paymentMethod'),
       idempotencyKey: formData.get('idempotencyKey'),
       payloadHash: formData.get('payloadHash'),
+      expectedTotalPaise: formData.get('expectedTotalPaise'),
     }
 
     const parsed = checkoutFormSchema.safeParse(rawData)
@@ -56,6 +60,7 @@ export async function submitCheckoutAction(
       notes,
       idempotencyKey,
       payloadHash,
+      expectedTotalPaise,
     } = parsed.data
 
     const result = await checkoutRepository.createCodOrderAtomic({
@@ -72,16 +77,26 @@ export async function submitCheckoutAction(
       state,
       postalCode,
       notes,
+      expectedTotalPaise,
     })
 
     if (!result.success) {
       return { success: false, error: result.error }
     }
 
-    revalidatePath('/', 'layout')
-    return { success: true, orderNumber: result.orderNumber }
+    orderNumber = result.orderNumber
   } catch (error: any) {
     console.error('Submit checkout error:', error)
     return { success: false, error: 'ORDER_CREATION_FAILED' }
   }
+
+  // Next.js redirect must be called outside try/catch to avoid catching the NEXT_REDIRECT error
+  if (orderNumber) {
+    // Only revalidate if we are redirecting away, or wait, redirecting inherently takes user away.
+    // If we revalidate '/' layout here, we don't trigger the /cart redirect for the user because we send them to /order/success.
+    revalidatePath('/', 'layout')
+    redirect(`/checkout/success/${orderNumber}`)
+  }
+
+  return { success: false, error: 'ORDER_CREATION_FAILED' }
 }

@@ -1,4 +1,4 @@
-export type CheckoutErrorCode = 
+export type CheckoutErrorCode =
   | 'CART_EMPTY'
   | 'CART_NOT_FOUND'
   | 'PRODUCT_INACTIVE'
