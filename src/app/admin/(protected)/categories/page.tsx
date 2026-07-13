@@ -9,7 +9,7 @@ export default async function AdminCategoriesPage(props: {
   const searchParams = await props.searchParams
   const search = (searchParams?.q as string) || ''
 
-  // Categories are generally few, we don't paginate the manager list heavily 
+  // Categories are generally few, we don't paginate the manager list heavily
   // but the query supports it if needed. We'll just fetch page 1 with all for the basic manager UI.
   const { categories } = await getAdminCategories({ search, page: 1 })
 

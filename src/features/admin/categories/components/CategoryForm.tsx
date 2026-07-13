@@ -47,7 +47,7 @@ export function CategoryForm({ category, onSuccess, onCancel, idempotencyKey }: 
       slug: (formData.get('slug') as string).toLowerCase().replace(/[^a-z0-9-]/g, '-'),
       description: (formData.get('description') as string) || null,
       sort_order: parseInt((formData.get('sort_order') as string) || '0', 10),
-      is_active: formData.get('is_active') === 'true'
+      is_active: formData.get('is_active') === 'true',
     }
 
     startTransition(async () => {
@@ -56,7 +56,7 @@ export function CategoryForm({ category, onSuccess, onCancel, idempotencyKey }: 
         expectedUpdatedAt: category?.updated_at,
         payloadVersion: 1,
         payload,
-        idempotencyKey
+        idempotencyKey,
       })
 
       if (result.success) {
@@ -85,7 +85,7 @@ export function CategoryForm({ category, onSuccess, onCancel, idempotencyKey }: 
             placeholder="e.g. Shirts"
           />
         </div>
-        
+
         <div>
           <label htmlFor="slug" className="block text-sm font-medium text-ink mb-1">
             Slug *

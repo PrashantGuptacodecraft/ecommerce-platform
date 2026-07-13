@@ -3,31 +3,32 @@
 import { requireAdmin } from '@/lib/security/auth'
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { productTreePayloadSchema } from '../validation/product'
+import { redirect } from 'next/navigation'
+import { productTreePayloadSchema as productSchema } from '../validation/product'
 import { mapAdminMutationError, getSafeErrorMessage } from '../errors/map-admin-mutation-error'
+
+export type SaveProductArgs = {
+  productId?: string
+  expectedUpdatedAt?: string
+  payloadVersion: number
+  payload: any // validated by zod
+  idempotencyKey: string
+}
 
 export type ProductActionState = {
   success: boolean
-  productId?: string
-  updatedAt?: string
   error?: string
   fieldErrors?: Record<string, string[]>
+  productId?: string
+  updatedAt?: string
   timestamp?: number
 }
 
-export async function saveProductTreeAction(
-  prevState: ProductActionState,
-  data: {
-    productId: string | null
-    expectedUpdatedAt: string | null
-    payload: any
-    idempotencyKey: string
-  },
-): Promise<ProductActionState> {
+export async function saveProductAction(args: SaveProductArgs): Promise<ProductActionState> {
   await requireAdmin()
   const supabase = await createClient()
 
-  const validated = productTreePayloadSchema.safeParse(data.payload)
+  const validated = productSchema.safeParse(args.payload)
 
   if (!validated.success) {
     return {
@@ -38,20 +39,13 @@ export async function saveProductTreeAction(
     }
   }
 
-  const payloadToSave = validated.data
-  const isNewProduct = !data.productId
-
-  // Rule: For the first product save, enforce is_active = false on the server
-  if (isNewProduct) {
-    payloadToSave.product.is_active = false
-  }
-
-  const { data: resultData, error } = await supabase.rpc('save_product_tree', {
-    p_product_id: (data.productId || null) as any,
-    p_expected_updated_at: (data.expectedUpdatedAt || null) as any,
-    p_payload_version: 1,
-    p_payload: payloadToSave,
-    p_idempotency_key: data.idempotencyKey,
+  // Call RPC
+  const { data, error } = await supabase.rpc('save_product_tree', {
+    p_product_id: (args.productId || null) as any,
+    p_expected_updated_at: (args.expectedUpdatedAt || null) as any,
+    p_payload_version: args.payloadVersion,
+    p_payload: validated.data as any,
+    p_idempotency_key: args.idempotencyKey,
   })
 
   if (error) {
@@ -62,38 +56,23 @@ export async function saveProductTreeAction(
     }
   }
 
-  const returnedProductId = (resultData as any).product_id
-
-  // Fetch the actual updated_at since the RPC doesn't return it
-  const { data: productData, error: fetchError } = await supabase
-    .from('products')
-    .select('updated_at, slug')
-    .eq('id', returnedProductId)
-    .single()
-
-  if (fetchError || !productData) {
-    return {
-      success: false,
-      error: 'Product saved but failed to retrieve updated timestamp.',
-      timestamp: Date.now(),
-    }
-  }
+  const resultData = data as { product_id: string; updated_at: string }
 
   // Cache Invalidation
-  if (!isNewProduct) {
-    revalidatePath(`/product/${productData.slug}`)
-  }
+  revalidatePath('/admin/products')
+  revalidatePath(`/admin/products/${resultData.product_id}`)
+  revalidatePath(`/product/${validated.data.product.slug}`)
   revalidatePath('/shop')
   revalidatePath('/')
 
-  if (payloadToSave.product.is_active || !isNewProduct) {
+  if (args.productId || validated.data.product.is_active) {
     revalidatePath('/sitemap.xml')
   }
 
   return {
     success: true,
-    productId: returnedProductId,
-    updatedAt: productData.updated_at,
+    productId: resultData.product_id,
+    updatedAt: resultData.updated_at,
     timestamp: Date.now(),
   }
 }

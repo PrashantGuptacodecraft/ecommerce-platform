@@ -27,7 +27,9 @@ export type CategoryActionState = {
   timestamp?: number
 }
 
-export async function saveCategoryTransactionAction(args: SaveCategoryArgs): Promise<CategoryActionState> {
+export async function saveCategoryTransactionAction(
+  args: SaveCategoryArgs,
+): Promise<CategoryActionState> {
   await requireAdmin()
   const supabase = await createClient()
 
@@ -61,7 +63,7 @@ export async function saveCategoryTransactionAction(args: SaveCategoryArgs): Pro
 
   // 3. Cache Invalidation
   revalidatePath('/admin/categories')
-  
+
   if (args.categoryId) {
     revalidatePath(`/category/${validated.data.slug}`)
   }

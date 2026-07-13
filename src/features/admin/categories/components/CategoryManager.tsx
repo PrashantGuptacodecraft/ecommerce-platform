@@ -90,9 +90,7 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
             </div>
           ))}
           {categories.length === 0 && (
-            <div className="p-8 text-center text-gray-500 text-sm">
-              No categories found.
-            </div>
+            <div className="p-8 text-center text-gray-500 text-sm">No categories found.</div>
           )}
         </div>
 

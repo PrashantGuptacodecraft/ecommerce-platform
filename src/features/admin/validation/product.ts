@@ -75,7 +75,7 @@ export const variantSchema = z.object({
   priceAdjustmentPaise: z.number().int().default(0),
   stockQuantity: z.number().int().min(0).default(0), // Only used during creation, ignored on update
   isActive: z.boolean().default(true),
-  optionValueIds: z.array(z.string().uuid()),
+  optionValueIds: z.array(z.string().uuid()), // Actually they should refer to the clientKeys if not saved yet, wait, this is tricky!
   imageId: z.string().uuid().optional().nullable(),
 })
 
