@@ -393,6 +393,53 @@ export type Database = {
           },
         ]
       }
+      order_idempotency_keys: {
+        Row: {
+          created_at: string
+          idempotency_key: string
+          operation: string
+          order_id: string | null
+          order_number: string | null
+          payload_hash: string
+          result: Json
+          session_token: string
+          status: string | null
+          total_paise: number | null
+        }
+        Insert: {
+          created_at?: string
+          idempotency_key: string
+          operation: string
+          order_id?: string | null
+          order_number?: string | null
+          payload_hash: string
+          result: Json
+          session_token: string
+          status?: string | null
+          total_paise?: number | null
+        }
+        Update: {
+          created_at?: string
+          idempotency_key?: string
+          operation?: string
+          order_id?: string | null
+          order_number?: string | null
+          payload_hash?: string
+          result?: Json
+          session_token?: string
+          status?: string | null
+          total_paise?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_idempotency_keys_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           colour_snapshot: string | null
@@ -1072,6 +1119,24 @@ export type Database = {
       }
     }
     Functions: {
+      create_cod_order_atomic: {
+        Args: {
+          p_address_line1: string
+          p_address_line2: string
+          p_city: string
+          p_email: string
+          p_idempotency_key: string
+          p_landmark: string
+          p_name: string
+          p_notes: string
+          p_payload_hash: string
+          p_phone: string
+          p_postal_code: string
+          p_session_token: string
+          p_state: string
+        }
+        Returns: Json
+      }
       create_product_image_upload_intent: {
         Args: {
           p_declared_mime_type: string
