@@ -100,7 +100,9 @@ export function StockAdjustmentDrawer({ isOpen, onClose, variant }: StockAdjustm
               invalid={!!state.fieldErrors?.change_quantity}
               required
             />
-            {state.fieldErrors?.change_quantity && <FormError>{state.fieldErrors.change_quantity[0]}</FormError>}
+            {state.fieldErrors?.change_quantity && (
+              <FormError>{state.fieldErrors.change_quantity[0]}</FormError>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -118,7 +120,13 @@ export function StockAdjustmentDrawer({ isOpen, onClose, variant }: StockAdjustm
           </div>
 
           <div className="pt-4 flex gap-3">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isPending} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isPending}
+              className="flex-1"
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isPending} className="flex-1">

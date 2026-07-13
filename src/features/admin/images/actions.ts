@@ -86,7 +86,7 @@ export async function updateProductImagesAction(
   productId: string,
   expectedUpdatedAt: string,
   payload: any,
-  idempotencyKey: string
+  idempotencyKey: string,
 ) {
   const adminContext = await requireAdmin()
   const supabase = await createClient()
@@ -111,14 +111,11 @@ export async function updateProductImagesAction(
   return { success: true, updatedAt: resultData.updated_at }
 }
 
-export async function deleteProductImageAction(
-  imageId: string,
-  idempotencyKey: string
-) {
+export async function deleteProductImageAction(imageId: string, idempotencyKey: string) {
   await requireAdmin()
   const supabase = await createClient()
 
-  // We don't have expectedUpdatedAt in this signature for the RPC, but we need to update the product. 
+  // We don't have expectedUpdatedAt in this signature for the RPC, but we need to update the product.
   // Actually, delete_product_image_transaction does NOT update the product updated_at in Milestone 5B currently, it just deletes the image and triggers a cleanup job. Wait, does it? Let's assume it just deletes it.
   const { data, error } = await supabase.rpc('delete_product_image_transaction', {
     p_image_id: imageId,
@@ -131,6 +128,6 @@ export async function deleteProductImageAction(
 
   revalidatePath('/shop')
   revalidatePath('/')
-  
+
   return { success: true }
 }

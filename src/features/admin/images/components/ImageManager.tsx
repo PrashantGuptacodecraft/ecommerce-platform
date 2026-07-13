@@ -31,30 +31,30 @@ export function ImageManager({
     // Let's at least update the updated_at token.
     setExpectedUpdatedAt(newUpdatedAt)
     onUpdatedAtChange(newUpdatedAt)
-    // To show it immediately we'd need the storage path. The user is instructed to use a full product reload or we just trigger a router.refresh() 
+    // To show it immediately we'd need the storage path. The user is instructed to use a full product reload or we just trigger a router.refresh()
     window.location.reload()
   }
 
   const handleUpdateImages = async (updatedImages: ProductImage[]) => {
     setIsPending(true)
     setError(null)
-    
+
     // Optimistic UI update
     setImages(updatedImages)
 
     try {
-      const payload = updatedImages.map(img => ({
+      const payload = updatedImages.map((img) => ({
         image_id: img.id,
         sort_order: img.sort_order,
         is_primary: img.is_primary,
-        alt_text: img.alt_text || null
+        alt_text: img.alt_text || null,
       }))
 
       const result = await updateProductImagesAction(
         productId,
         expectedUpdatedAt,
         payload,
-        crypto.randomUUID()
+        crypto.randomUUID(),
       )
 
       if (result.success && result.updatedAt) {
@@ -78,7 +78,7 @@ export function ImageManager({
 
     // Optimistic UI
     const originalImages = [...images]
-    setImages(images.filter(img => img.id !== imageId))
+    setImages(images.filter((img) => img.id !== imageId))
 
     try {
       const result = await deleteProductImageAction(imageId, crypto.randomUUID())
@@ -96,22 +96,20 @@ export function ImageManager({
   return (
     <div className="space-y-8">
       {error && (
-        <div className="bg-red-50 text-red-800 p-4 rounded-md border border-red-200">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-800 p-4 rounded-md border border-red-200">{error}</div>
       )}
 
-      <ImageUploader 
-        productId={productId} 
-        expectedUpdatedAt={expectedUpdatedAt} 
-        onUploadSuccess={handleUploadSuccess} 
+      <ImageUploader
+        productId={productId}
+        expectedUpdatedAt={expectedUpdatedAt}
+        onUploadSuccess={handleUploadSuccess}
       />
 
       <div className="mt-8">
         <h3 className="text-sm font-medium text-ink mb-4">Manage Images</h3>
-        <ImageReorderList 
-          images={images} 
-          onUpdateImages={handleUpdateImages} 
+        <ImageReorderList
+          images={images}
+          onUpdateImages={handleUpdateImages}
           onDeleteImage={handleDeleteImage}
           disabled={isPending}
         />

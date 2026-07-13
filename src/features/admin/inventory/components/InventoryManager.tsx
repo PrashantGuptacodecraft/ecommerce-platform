@@ -16,9 +16,9 @@ type InventoryManagerProps = {
 export function InventoryManager({ variants, totalPages, currentPage }: InventoryManagerProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null)
-  
+
   const currentSearch = searchParams.get('search') || ''
   const currentStatus = searchParams.get('stockStatus') || ''
 
@@ -26,11 +26,11 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const search = formData.get('search') as string
-    
+
     const params = new URLSearchParams(searchParams.toString())
     if (search) params.set('search', search)
     else params.delete('search')
-    
+
     params.set('page', '1')
     router.push(`?${params.toString()}`)
   }
@@ -39,7 +39,7 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
     const params = new URLSearchParams(searchParams.toString())
     if (status) params.set('stockStatus', status)
     else params.delete('stockStatus')
-    
+
     params.set('page', '1')
     router.push(`?${params.toString()}`)
   }
@@ -55,39 +55,41 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <form onSubmit={handleSearch} className="w-full md:w-1/3 flex gap-2">
-          <Input 
-            name="search" 
-            placeholder="Search by SKU or product name..." 
-            defaultValue={currentSearch} 
+          <Input
+            name="search"
+            placeholder="Search by SKU or product name..."
+            defaultValue={currentSearch}
             className="flex-grow"
           />
-          <Button type="submit" variant="secondary">Search</Button>
+          <Button type="submit" variant="secondary">
+            Search
+          </Button>
         </form>
 
         <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-          <Button 
-            variant={!currentStatus ? 'primary' : 'outline'} 
+          <Button
+            variant={!currentStatus ? 'primary' : 'outline'}
             onClick={() => handleStatusFilter('')}
             size="sm"
           >
             All
           </Button>
-          <Button 
-            variant={currentStatus === 'in_stock' ? 'primary' : 'outline'} 
+          <Button
+            variant={currentStatus === 'in_stock' ? 'primary' : 'outline'}
             onClick={() => handleStatusFilter('in_stock')}
             size="sm"
           >
             In Stock
           </Button>
-          <Button 
-            variant={currentStatus === 'low_stock' ? 'primary' : 'outline'} 
+          <Button
+            variant={currentStatus === 'low_stock' ? 'primary' : 'outline'}
             onClick={() => handleStatusFilter('low_stock')}
             size="sm"
           >
             Low Stock
           </Button>
-          <Button 
-            variant={currentStatus === 'out_of_stock' ? 'primary' : 'outline'} 
+          <Button
+            variant={currentStatus === 'out_of_stock' ? 'primary' : 'outline'}
             onClick={() => handleStatusFilter('out_of_stock')}
             size="sm"
           >
@@ -137,11 +139,7 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        onClick={() => setSelectedVariant(v)}
-                      >
+                      <Button variant="secondary" size="sm" onClick={() => setSelectedVariant(v)}>
                         Adjust
                       </Button>
                     </td>
@@ -151,7 +149,7 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
             </tbody>
           </table>
         </div>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="p-4 border-t border-fog bg-paper flex items-center justify-between">
@@ -159,17 +157,17 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
               Page {currentPage} of {totalPages}
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={currentPage === 1}
                 onClick={() => handlePageChange(currentPage - 1)}
               >
                 Previous
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 disabled={currentPage === totalPages}
                 onClick={() => handlePageChange(currentPage + 1)}
               >
@@ -180,9 +178,9 @@ export function InventoryManager({ variants, totalPages, currentPage }: Inventor
         )}
       </div>
 
-      <StockAdjustmentDrawer 
-        isOpen={!!selectedVariant} 
-        onClose={() => setSelectedVariant(null)} 
+      <StockAdjustmentDrawer
+        isOpen={!!selectedVariant}
+        onClose={() => setSelectedVariant(null)}
         variant={selectedVariant}
       />
     </div>

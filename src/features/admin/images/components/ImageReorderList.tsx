@@ -12,7 +12,12 @@ type ImageReorderListProps = {
   disabled?: boolean
 }
 
-export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabled }: ImageReorderListProps) {
+export function ImageReorderList({
+  images,
+  onUpdateImages,
+  onDeleteImage,
+  disabled,
+}: ImageReorderListProps) {
   // We manage a local sorted array for immediate UI feedback.
   // The parent handles the actual saving to backend.
   const sortedImages = [...images].sort((a, b) => a.sort_order - b.sort_order)
@@ -26,7 +31,7 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
       newImages[index - 1] = current
       newImages[index] = previous
     }
-    
+
     // Update sort orders based on new array positions
     const finalized = newImages.map((img, i) => ({ ...img, sort_order: i }))
     onUpdateImages(finalized)
@@ -41,23 +46,23 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
       newImages[index + 1] = current
       newImages[index] = next
     }
-    
+
     // Update sort orders
     const finalized = newImages.map((img, i) => ({ ...img, sort_order: i }))
     onUpdateImages(finalized)
   }
 
   const handleSetPrimary = (imageId: string) => {
-    const newImages = sortedImages.map(img => ({
+    const newImages = sortedImages.map((img) => ({
       ...img,
-      is_primary: img.id === imageId
+      is_primary: img.id === imageId,
     }))
     onUpdateImages(newImages)
   }
 
   const handleAltTextChange = (imageId: string, altText: string) => {
-    const newImages = sortedImages.map(img => 
-      img.id === imageId ? { ...img, alt_text: altText } : img
+    const newImages = sortedImages.map((img) =>
+      img.id === imageId ? { ...img, alt_text: altText } : img,
     )
     onUpdateImages(newImages)
   }
@@ -75,16 +80,16 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
       {sortedImages.map((img, index) => {
         const url = getProductImageUrl(img.storage_path)
         return (
-          <div 
-            key={img.id} 
+          <div
+            key={img.id}
             className={`flex flex-col sm:flex-row gap-4 p-4 rounded-md border ${img.is_primary ? 'border-ink bg-paper/20' : 'border-fog bg-paper/50'}`}
           >
             <div className="flex-shrink-0 w-24 h-32 bg-fog rounded-md overflow-hidden relative">
               {url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={url} 
-                  alt={img.alt_text || 'Product image preview'} 
+                <img
+                  src={url}
+                  alt={img.alt_text || 'Product image preview'}
                   className="object-cover w-full h-full"
                 />
               ) : (
@@ -114,18 +119,18 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
 
               <div className="flex flex-wrap gap-2 items-center justify-between">
                 <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     disabled={disabled || index === 0}
                     onClick={() => handleMoveUp(index)}
                   >
                     Up
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     disabled={disabled || index === sortedImages.length - 1}
                     onClick={() => handleMoveDown(index)}
@@ -133,9 +138,9 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
                     Down
                   </Button>
                   {!img.is_primary && (
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       size="sm"
                       disabled={disabled}
                       onClick={() => handleSetPrimary(img.id)}
@@ -145,14 +150,18 @@ export function ImageReorderList({ images, onUpdateImages, onDeleteImage, disabl
                   )}
                 </div>
 
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                   disabled={disabled}
                   onClick={() => {
-                    if (confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+                    if (
+                      confirm(
+                        'Are you sure you want to delete this image? This action cannot be undone.',
+                      )
+                    ) {
                       onDeleteImage(img.id)
                     }
                   }}

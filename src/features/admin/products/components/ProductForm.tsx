@@ -219,7 +219,7 @@ export function ProductForm({
           {product && (
             <div className="bg-white p-6 rounded-md shadow-sm border border-fog/50">
               <h2 className="text-lg font-semibold text-ink mb-4">Product Images</h2>
-              <ImageManager 
+              <ImageManager
                 productId={product.id}
                 initialImages={images || []}
                 initialExpectedUpdatedAt={expectedUpdatedAt || ''}

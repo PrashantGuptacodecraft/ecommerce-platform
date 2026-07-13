@@ -78,12 +78,12 @@ export async function executeFinalizeImageUpload(
 
   if (productData) {
     updatedAt = productData.updated_at
-    
+
     // Invalidate caches
     revalidatePath(`/product/${productData.slug}`)
     revalidatePath('/shop')
     revalidatePath('/')
-    // We would revalidate category if we had the slug, but we only have category_id here. 
+    // We would revalidate category if we had the slug, but we only have category_id here.
     // Usually cache invalidation is better done via the category slug.
     // For Milestone 5, the global paths are sufficient.
   }

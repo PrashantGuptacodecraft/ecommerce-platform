@@ -13,7 +13,11 @@ type ImageUploaderProps = {
   onUploadSuccess: (imageId: string, newUpdatedAt: string) => void
 }
 
-export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }: ImageUploaderProps) {
+export function ImageUploader({
+  productId,
+  expectedUpdatedAt,
+  onUploadSuccess,
+}: ImageUploaderProps) {
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<UploadState>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -56,7 +60,7 @@ export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }:
       const intentResult = await createUploadIntentAction(
         productId,
         { mimeType: file.type, sizeBytes: file.size },
-        idempotencyKey
+        idempotencyKey,
       )
 
       if (!intentResult.success || !intentResult.intentId || !intentResult.signedUrl) {
@@ -82,7 +86,7 @@ export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }:
       const finalizeResult = await finalizeImageUploadAction(
         intentResult.intentId,
         expectedUpdatedAt,
-        crypto.randomUUID() // New idempotency key for finalization
+        crypto.randomUUID(), // New idempotency key for finalization
       )
 
       if (!finalizeResult.success || !finalizeResult.updatedAt || !finalizeResult.imageId) {
@@ -96,10 +100,9 @@ export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }:
       }
 
       onUploadSuccess(finalizeResult.imageId, finalizeResult.updatedAt)
-      
+
       // Reset after a brief moment to allow another upload
       setTimeout(() => setStatus('idle'), 2000)
-
     } catch (err: any) {
       setError(err.message || 'An unknown error occurred during upload')
       setStatus('failed')
@@ -109,7 +112,7 @@ export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }:
   return (
     <div className="border border-fog rounded-md p-4 bg-paper/50">
       <h3 className="text-sm font-medium text-ink mb-4">Upload New Image</h3>
-      
+
       <div className="space-y-4">
         <div>
           <input
@@ -133,20 +136,18 @@ export function ImageUploader({ productId, expectedUpdatedAt, onUploadSuccess }:
         {status !== 'idle' && (
           <div className="flex items-center justify-between mt-4 p-3 bg-paper border border-fog rounded-md">
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-ink">
-                {file?.name}
-              </span>
+              <span className="text-sm font-medium text-ink">{file?.name}</span>
               <span className="text-xs text-slate">
                 Status: <span className="font-semibold uppercase tracking-wider">{status}</span>
               </span>
             </div>
-            
+
             {status === 'selected' && (
               <Button onClick={handleUpload} size="sm">
                 Start Upload
               </Button>
             )}
-            
+
             {status === 'failed' && (
               <Button onClick={handleUpload} size="sm" variant="outline">
                 Retry

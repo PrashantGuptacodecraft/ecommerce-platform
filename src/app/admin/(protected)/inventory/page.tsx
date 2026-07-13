@@ -36,11 +36,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <InventoryManager 
-        variants={variants} 
-        totalPages={totalPages} 
-        currentPage={page} 
-      />
+      <InventoryManager variants={variants} totalPages={totalPages} currentPage={page} />
     </Container>
   )
 }

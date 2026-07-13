@@ -98,7 +98,15 @@ export function parseImageMetadata(buffer: Buffer): ImageMetadata {
         offset += 12
         continue
       }
-      if (boxType === 'moov' || boxType === 'trak' || boxType === 'mdia' || boxType === 'minf' || boxType === 'stbl' || boxType === 'iprp' || boxType === 'ipco') {
+      if (
+        boxType === 'moov' ||
+        boxType === 'trak' ||
+        boxType === 'mdia' ||
+        boxType === 'minf' ||
+        boxType === 'stbl' ||
+        boxType === 'iprp' ||
+        boxType === 'ipco'
+      ) {
         offset += 8
         continue
       }
