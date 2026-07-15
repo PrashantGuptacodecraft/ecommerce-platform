@@ -10,6 +10,8 @@ import { getProductBySlug, getProductSlugs } from '@/features/products/queries'
 import { Breadcrumbs } from '@/components/product/Breadcrumbs'
 import { ProductGallery } from '@/components/product/ProductGallery'
 import { ProductDetailClient } from './ProductDetailClient'
+import { getProductReviews } from '@/features/reviews/queries'
+import { ProductReviewsSection } from '@/features/reviews/components/ProductReviewsSection'
 import {
   getSiteUrl,
   productJsonLd,
@@ -74,6 +76,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) {
     notFound()
   }
+  
+  const reviews = await getProductReviews(product.id)
 
   const siteUrl = getSiteUrl()
   const canonicalUrl = `${siteUrl}/product/${product.slug}`
@@ -210,6 +214,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </RevealOnScroll>
             </div>
           </div>
+
+          <Suspense fallback={<div className="h-40 animate-pulse bg-fog/20 mt-16 rounded-xl" />}>
+            <ProductReviewsSection productId={product.id} reviews={reviews} />
+          </Suspense>
         </Container>
       </div>
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
-import { BagIcon, MenuIcon, SearchIcon } from '@/components/ui/icons'
+import { BagIcon, MenuIcon, SearchIcon, HeartIcon } from '@/components/ui/icons'
 import { MobileDrawerNav } from '@/components/layout/MobileDrawerNav'
 import { brand } from '@/config/brand'
 import { mainNav } from '@/config/navigation'
@@ -55,6 +55,9 @@ export function Header({ cart }: { cart: CartDetail | null }) {
           <div className="flex items-center gap-1">
             <Link href="/search" aria-label="Search" className={iconButton}>
               <SearchIcon className="size-5" />
+            </Link>
+            <Link href="/wishlist" aria-label="Wishlist" className={iconButton}>
+              <HeartIcon className="size-5" />
             </Link>
             <CartBadge
               totalItems={cart?.totalItems || 0}

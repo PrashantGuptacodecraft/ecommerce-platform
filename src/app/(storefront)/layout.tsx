@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { ToastProvider } from '@/components/ui/Toast'
 import { getCart } from '@/features/cart/queries'
+import { WishlistProvider } from '@/features/wishlist/components/WishlistProvider'
 
 /**
  * Storefront chrome for the public route group: announcement bar, header
@@ -14,13 +15,15 @@ export default async function StorefrontLayout({ children }: { children: ReactNo
   const cart = await getCart()
 
   return (
-    <ToastProvider>
-      <div className="flex min-h-dvh flex-col">
-        <AnnouncementBar />
-        <Header cart={cart} />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </div>
-    </ToastProvider>
+    <WishlistProvider>
+      <ToastProvider>
+        <div className="flex min-h-dvh flex-col">
+          <AnnouncementBar />
+          <Header cart={cart} />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
+      </ToastProvider>
+    </WishlistProvider>
   )
 }
