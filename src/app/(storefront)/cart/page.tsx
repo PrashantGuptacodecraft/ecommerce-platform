@@ -59,9 +59,9 @@ export default async function CartPage() {
                 Items in your cart are not reserved until checkout.
               </p>
 
-              <Button className="w-full h-14 text-base" disabled>
-                Checkout (Coming Soon)
-              </Button>
+              <Link href="/checkout">
+                <Button className="w-full h-14 text-base">Proceed to Checkout</Button>
+              </Link>
             </div>
           </div>
         </div>

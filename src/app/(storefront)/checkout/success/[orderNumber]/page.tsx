@@ -72,7 +72,7 @@ export default async function OrderSuccessPage({
         </div>
 
         <div className="flex justify-between font-medium pt-2">
-          <span>Total Paid (COD)</span>
+          <span>Total {order.payment_method === 'cod' ? '(Cash on Delivery)' : 'Paid'}</span>
           <span>{formatPaise(order.total_paise)}</span>
         </div>
       </div>

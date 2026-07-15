@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import Link from 'next/link'
 import { Drawer } from '@/components/ui/Drawer'
 import { Button } from '@/components/ui/Button'
 import { formatPaise } from '@/lib/utilities/money'
@@ -34,9 +35,9 @@ export function CartDrawer({ cart, isOpen, onClose }: CartDrawerProps) {
             <p className="text-xs text-mist text-center">
               Items in your cart are not reserved until checkout.
             </p>
-            <Button className="w-full" disabled>
-              Checkout (Coming Soon)
-            </Button>
+            <Link href="/checkout" onClick={onClose}>
+              <Button className="w-full">Proceed to Checkout</Button>
+            </Link>
           </div>
         )
       }

@@ -1,0 +1,41 @@
+name: Razorpay Reconciliation Cron
+
+on:
+  schedule:
+    # Run every 15 minutes, off the top of the hour to avoid peak loads
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Reconciliation Route
+        env:
+          RECONCILIATION_URL: ${{ secrets.RAZORPAY_RECONCILIATION_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$RECONCILIATION_URL" ]; then
+            echo "RAZORPAY_RECONCILIATION_URL secret is not set."
+            exit 1
+          fi
+
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET secret is not set."
+            exit 1
+          fi
+
+          echo "Pinging $RECONCILIATION_URL"
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X GET "$RECONCILIATION_URL" \
+            -H "Authorization: Bearer $CRON_SECRET")
+            
+          HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
+          BODY=$(echo "$RESPONSE" | sed -e 's/HTTP_STATUS\:.*//g')
+
+          echo "Status: $HTTP_STATUS"
+          echo "Body: $BODY"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Failed to execute cron."
+            exit 1
+          fi

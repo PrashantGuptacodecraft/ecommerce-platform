@@ -63,7 +63,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions): stri
 
   const scriptSrc = !isProd
     ? // DEV ONLY — Turbopack/React-Refresh HMR needs eval + inline. Never prod.
-      `'self' 'unsafe-eval' 'unsafe-inline'`
+      `'self' 'unsafe-eval' 'unsafe-inline' ${RAZORPAY_SCRIPT}`
     : strictScripts
       ? // Strict: nonce, no unsafe-inline, no unsafe-eval (dynamic /admin routes).
         `'self' 'nonce-${nonce}' ${RAZORPAY_SCRIPT}`

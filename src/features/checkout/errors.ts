@@ -13,6 +13,15 @@ export type CheckoutErrorCode =
   | 'ORDER_CREATION_FAILED'
   | 'CONCURRENCY_CONFLICT'
   | 'UNAUTHORIZED'
+  | 'INVALID_PAYMENT_METHOD'
+  | 'SYSTEM_ERROR'
+  | 'INITIALIZATION_FAILED'
+  | 'INITIALIZATION_AMBIGUOUS'
+  | 'INITIALIZATION_AMBIGUOUS_RETRY'
+  | 'FAILED_TO_ATTACH'
+  | 'INVALID_SIGNATURE'
+  | 'CONFIRMATION_FAILED'
+  | 'LATE_CAPTURE_REQUIRES_REVIEW'
   | 'UNKNOWN_ERROR'
 
 export const CHECKOUT_ERROR_MESSAGES: Record<CheckoutErrorCode, string> = {
@@ -30,6 +39,16 @@ export const CHECKOUT_ERROR_MESSAGES: Record<CheckoutErrorCode, string> = {
   ORDER_CREATION_FAILED: 'We could not create your order. Please try again.',
   CONCURRENCY_CONFLICT: 'The system is busy processing another request. Please try again.',
   UNAUTHORIZED: 'You are not authorized to perform this action.',
+  INVALID_PAYMENT_METHOD: 'The selected payment method is not supported.',
+  SYSTEM_ERROR: 'A system error occurred. Please try again later.',
+  INITIALIZATION_FAILED: 'Payment initialization failed. Please try again.',
+  INITIALIZATION_AMBIGUOUS: 'Payment initialization returned an unclear response. Please retry.',
+  INITIALIZATION_AMBIGUOUS_RETRY:
+    'Payment could not be confirmed after retry. Please start a new checkout.',
+  FAILED_TO_ATTACH: 'Failed to link your payment to the order. Please try again.',
+  INVALID_SIGNATURE: 'Payment verification failed. Please contact support if you were charged.',
+  CONFIRMATION_FAILED: 'We could not confirm your payment. Please contact support.',
+  LATE_CAPTURE_REQUIRES_REVIEW: 'Your payment requires manual review. We will update you shortly.',
   UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',
 }
 

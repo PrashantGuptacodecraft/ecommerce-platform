@@ -25,7 +25,6 @@ export async function addCartItemAction(
 
     const parsed = addCartItemSchema.safeParse(rawData)
     if (!parsed.success) {
-      console.log('PARSED FAILED', parsed.error.flatten().fieldErrors, rawData)
       return { success: false, fieldErrors: parsed.error.flatten().fieldErrors }
     }
 
@@ -93,11 +92,8 @@ export async function updateCartItemQuantityAction(
       return { success: false, error: 'INSUFFICIENT_STOCK' }
     }
 
-    console.log('[updateCartItemQuantityAction] updating repo')
     await cartRepository.updateCartItemQuantity(cartId, variantId, quantity)
-    console.log('[updateCartItemQuantityAction] updated repo, revalidating')
     revalidatePath('/', 'layout')
-    console.log('[updateCartItemQuantityAction] revalidated, returning')
     return { success: true }
   } catch (error: any) {
     console.error('Update cart item error:', error)

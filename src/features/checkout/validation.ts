@@ -11,10 +11,10 @@ export const checkoutFormSchema = z.object({
   state: z.string().trim().min(2, 'State is required'),
   postalCode: z.string().trim().min(6, 'Valid postal code is required'),
   notes: z.string().trim().optional(),
-  paymentMethod: z.literal('cod'), // Only COD for Milestone 7A
+  paymentMethod: z.enum(['cod', 'razorpay']),
   idempotencyKey: z.string().uuid(),
   payloadHash: z.string().min(1),
-  expectedTotalPaise: z.coerce.number().min(0),
+  expectedTotalPaise: z.coerce.number().min(1),
 })
 
 export type CheckoutFormData = z.infer<typeof checkoutFormSchema>

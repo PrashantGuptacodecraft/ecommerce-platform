@@ -66,7 +66,7 @@ describe('Checkout Integration', () => {
       .select('id')
       .single()
     cartId = cart!.id
-  })
+  }, 30000)
 
   afterAll(async () => {
     // Cleanup

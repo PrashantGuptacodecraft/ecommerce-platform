@@ -927,6 +927,71 @@ export type Database = {
           },
         ]
       }
+      razorpay_payment_intents: {
+        Row: {
+          amount_paise: number
+          confirmed_at: string | null
+          created_at: string
+          currency: string
+          deterministic_receipt: string
+          expires_at: string
+          hold_extension_count: number
+          id: string
+          initialization_status: string
+          order_id: string
+          provider_last_checked_at: string | null
+          razorpay_order_id: string | null
+          requires_manual_review: boolean
+          review_reason: string | null
+          stock_released_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_paise: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          deterministic_receipt: string
+          expires_at: string
+          hold_extension_count?: number
+          id?: string
+          initialization_status?: string
+          order_id: string
+          provider_last_checked_at?: string | null
+          razorpay_order_id?: string | null
+          requires_manual_review?: boolean
+          review_reason?: string | null
+          stock_released_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_paise?: number
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          deterministic_receipt?: string
+          expires_at?: string
+          hold_extension_count?: number
+          id?: string
+          initialization_status?: string
+          order_id?: string
+          provider_last_checked_at?: string | null
+          razorpay_order_id?: string | null
+          requires_manual_review?: boolean
+          review_reason?: string | null
+          stock_released_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "razorpay_payment_intents_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           courier_name: string | null
@@ -1072,31 +1137,43 @@ export type Database = {
       }
       webhook_events: {
         Row: {
+          attempt_count: number
           created_at: string
           event_id: string
           event_type: string
           id: string
+          last_error: string | null
           payload: Json
           processed_at: string | null
           provider: string
+          status: string
+          updated_at: string
         }
         Insert: {
+          attempt_count?: number
           created_at?: string
           event_id: string
           event_type: string
           id?: string
+          last_error?: string | null
           payload: Json
           processed_at?: string | null
           provider?: string
+          status?: string
+          updated_at?: string
         }
         Update: {
+          attempt_count?: number
           created_at?: string
           event_id?: string
           event_type?: string
           id?: string
+          last_error?: string | null
           payload?: Json
           processed_at?: string | null
           provider?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1119,12 +1196,31 @@ export type Database = {
       }
     }
     Functions: {
+      attach_razorpay_order_atomic: {
+        Args: {
+          p_amount_paise: number
+          p_currency: string
+          p_intent_id: string
+          p_razorpay_order_id: string
+        }
+        Returns: boolean
+      }
+      confirm_razorpay_payment_atomic: {
+        Args: {
+          p_amount_paise: number
+          p_currency: string
+          p_razorpay_order_id: string
+          p_razorpay_payment_id: string
+        }
+        Returns: Json
+      }
       create_cod_order_atomic: {
         Args: {
           p_address_line1: string
           p_address_line2: string
           p_city: string
           p_email: string
+          p_expected_total_paise: number
           p_idempotency_key: string
           p_landmark: string
           p_name: string
@@ -1150,9 +1246,32 @@ export type Database = {
           object_path: string
         }[]
       }
+      create_razorpay_order_atomic: {
+        Args: {
+          p_address_line1: string
+          p_address_line2: string
+          p_city: string
+          p_email: string
+          p_expected_total_paise: number
+          p_idempotency_key: string
+          p_landmark: string
+          p_name: string
+          p_notes: string
+          p_payload_hash: string
+          p_phone: string
+          p_postal_code: string
+          p_session_token: string
+          p_state: string
+        }
+        Returns: Json
+      }
       delete_product_image_transaction: {
         Args: { p_idempotency_key: string; p_image_id: string }
         Returns: string
+      }
+      expire_razorpay_order_atomic: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: boolean
       }
       finalize_product_image_upload: {
         Args: {
@@ -1169,6 +1288,16 @@ export type Database = {
         Returns: string
       }
       is_active_admin: { Args: never; Returns: boolean }
+      list_expired_razorpay_candidates: {
+        Args: { p_limit: number }
+        Returns: {
+          deterministic_receipt: string
+          hold_extension_count: number
+          intent_id: string
+          order_id: string
+          razorpay_order_id: string
+        }[]
+      }
       manual_adjust_variant_stock: {
         Args: {
           p_change_quantity: number
@@ -1180,6 +1309,23 @@ export type Database = {
           new_stock: number
           transaction_id: string
         }[]
+      }
+      mark_intent_initialization_ambiguous_atomic: {
+        Args: { p_intent_id: string }
+        Returns: boolean
+      }
+      mark_intent_initialization_failed_atomic: {
+        Args: { p_intent_id: string }
+        Returns: boolean
+      }
+      record_razorpay_payment_attempt_atomic: {
+        Args: {
+          p_amount_paise: number
+          p_razorpay_order_id: string
+          p_razorpay_payment_id: string
+          p_status: Database["public"]["Enums"]["payment_status"]
+        }
+        Returns: boolean
       }
       release_variant_stock: {
         Args: {
@@ -1228,6 +1374,10 @@ export type Database = {
           p_product_id: string
         }
         Returns: Json
+      }
+      update_razorpay_intent_reconciliation: {
+        Args: { p_extend_hold: boolean; p_intent_id: string }
+        Returns: boolean
       }
       upsert_cart_item_atomic: {
         Args: {
