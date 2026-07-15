@@ -42,4 +42,12 @@ const nextConfig: NextConfig = {
   images: getSupabaseImagePatterns(),
 }
 
-export default nextConfig
+import { withSentryConfig } from '@sentry/nextjs'
+
+export default withSentryConfig(nextConfig, {
+  org: 'studio-noir',
+  project: 'studio-noir-ecommerce',
+  silent: !process.env.CI,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+})
