@@ -76,7 +76,7 @@ export type ProductDetail = Pick<
   | 'seo_title'
   | 'seo_description'
 > & {
-  category: Pick<Category, 'name' | 'slug'> | null
+  category: Pick<Category, 'id' | 'name' | 'slug'> | null
   sizeChart: unknown
   images: ProductImage[]
   options: ProductOption[]
@@ -102,6 +102,7 @@ export const productSortSchema = z
   .catch('featured')
 
 export const shopQuerySchema = z.object({
+  q: z.string().trim().min(1).max(100).optional(),
   category: z.string().trim().min(1).max(80).optional(),
   size: z.string().trim().min(1).max(40).optional(),
   colour: z.string().trim().min(1).max(40).optional(),

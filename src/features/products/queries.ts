@@ -165,6 +165,12 @@ export async function listProducts(query: ShopQuery): Promise<PaginatedProducts>
     builder = builder.eq('category_id', category.id)
   }
 
+  if (query.q) {
+    const escaped = query.q.replace(/[%_]/g, '\\$&')
+    const pattern = `%${escaped}%`
+    builder = builder.or(`name.ilike.${pattern},short_description.ilike.${pattern}`)
+  }
+
   if (typeof query.minPrice === 'number') {
     builder = builder.gte('base_price_paise', query.minPrice)
   }
@@ -264,32 +270,29 @@ async function filterProductIdsByOptionValues(
   return matched
 }
 
-/** Full-text-ish search over name + short description (case-insensitive). */
-export async function searchProducts(
-  term: string,
-  options: ListOptions = {},
-): Promise<PaginatedProducts> {
+
+
+/** Get related products by category, excluding the current product. */
+export async function getRelatedProducts(
+  currentProductId: string,
+  categoryId?: string,
+  limit = 4,
+): Promise<ProductSummary[]> {
+  if (!categoryId) return []
+  
   const supabase = createPublicClient()
-  const page = options.page ?? 1
-  const pageSize = options.limit ?? PAGE_SIZE
-  const from = (page - 1) * pageSize
-
-  const escaped = term.replace(/[%_]/g, '\\$&')
-  const pattern = `%${escaped}%`
-
-  const { data, error, count } = await supabase
+  const { data, error } = await supabase
     .from('products')
-    .select(PRODUCT_CARD_SELECT, { count: 'exact' })
+    .select(PRODUCT_CARD_SELECT)
     .eq('is_active', true)
-    .or(`name.ilike.${pattern},short_description.ilike.${pattern}`)
+    .eq('category_id', categoryId)
+    .neq('id', currentProductId)
     .order('is_featured', { ascending: false })
-    .order('id', { ascending: true })
-    .range(from, from + pageSize - 1)
+    .order('created_at', { ascending: false })
+    .limit(limit)
 
-  if (error) throw new Error(`searchProducts: ${error.message}`)
-  const items = ((data as unknown as ProductJoinRow[]) ?? []).map(toSummary)
-  const total = count ?? 0
-  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) }
+  if (error) throw new Error(`getRelatedProducts: ${error.message}`)
+  return ((data as unknown as ProductJoinRow[]) ?? []).map(toSummary)
 }
 
 // ---------------------------------------------------------------------------
@@ -311,7 +314,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     .select(
       'id, slug, name, description, short_description, base_price_paise, compare_at_price_paise, ' +
         'fabric, care_instructions, fit_info, is_new_arrival, is_featured, seo_title, seo_description, size_chart, ' +
-        'categories ( name, slug ), ' +
+        'categories ( id, name, slug ), ' +
         'product_images ( id, storage_path, alt_text, sort_order, is_primary ), ' +
         'product_options ( id, name, sort_order, product_option_values ( id, value, sort_order ) ), ' +
         'product_variants ( id, sku, stock_quantity, price_adjustment_paise, is_active, image_id, ' +
@@ -340,7 +343,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
     seo_title: string | null
     seo_description: string | null
     size_chart: unknown
-    categories: { name: string; slug: string } | null
+    categories: { id: string; name: string; slug: string } | null
     product_images: ProductImage[]
     product_options: {
       id: string

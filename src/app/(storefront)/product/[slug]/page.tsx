@@ -12,6 +12,7 @@ import { ProductGallery } from '@/components/product/ProductGallery'
 import { ProductDetailClient } from './ProductDetailClient'
 import { getProductReviews } from '@/features/reviews/queries'
 import { ProductReviewsSection } from '@/features/reviews/components/ProductReviewsSection'
+import { RelatedProducts } from '@/components/product/RelatedProducts'
 import {
   getSiteUrl,
   productJsonLd,
@@ -214,6 +215,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </RevealOnScroll>
             </div>
           </div>
+
+          <Suspense fallback={<div className="h-40 animate-pulse bg-fog/20 mt-16 rounded-xl" />}>
+            <RelatedProducts currentProductId={product.id} categoryId={product.category?.id} />
+          </Suspense>
 
           <Suspense fallback={<div className="h-40 animate-pulse bg-fog/20 mt-16 rounded-xl" />}>
             <ProductReviewsSection productId={product.id} reviews={reviews} />

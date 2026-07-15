@@ -96,7 +96,7 @@ describe('structured-data utilities', () => {
         is_featured: true,
         seo_title: null,
         seo_description: null,
-        category: { name: 'Shirts', slug: 'shirts' },
+        category: { id: 'c1', name: 'Shirts', slug: 'shirts' },
         sizeChart: null,
         images: [],
         options: [],
