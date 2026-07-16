@@ -320,6 +320,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          auth_user_id: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -327,6 +328,7 @@ export type Database = {
           phone: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -334,6 +336,7 @@ export type Database = {
           phone?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -802,6 +805,53 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          author_name: string
+          content: string | null
+          created_at: string
+          id: string
+          is_verified_purchase: boolean
+          product_id: string
+          rating: number
+          status: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          product_id: string
+          rating: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_verified_purchase?: boolean
+          product_id?: string
+          rating?: number
+          status?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           created_at: string
@@ -1177,6 +1227,74 @@ export type Database = {
         }
         Relationships: []
       }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          wishlist_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          wishlist_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          wishlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_wishlist_id_fkey"
+            columns: ["wishlist_id"]
+            isOneToOne: false
+            referencedRelation: "wishlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlists: {
+        Row: {
+          created_at: string
+          customer_id: string | null
+          id: string
+          session_token: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          session_token: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          session_token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlists_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_store_settings: {
@@ -1214,25 +1332,45 @@ export type Database = {
         }
         Returns: Json
       }
-      create_cod_order_atomic: {
-        Args: {
-          p_address_line1: string
-          p_address_line2: string
-          p_city: string
-          p_email: string
-          p_expected_total_paise: number
-          p_idempotency_key: string
-          p_landmark: string
-          p_name: string
-          p_notes: string
-          p_payload_hash: string
-          p_phone: string
-          p_postal_code: string
-          p_session_token: string
-          p_state: string
-        }
-        Returns: Json
-      }
+      create_cod_order_atomic:
+        | {
+            Args: {
+              p_address_line1: string
+              p_address_line2: string
+              p_auth_user_id: string
+              p_city: string
+              p_email: string
+              p_idempotency_key: string
+              p_landmark: string
+              p_name: string
+              p_notes: string
+              p_payload_hash: string
+              p_phone: string
+              p_postal_code: string
+              p_session_token: string
+              p_state: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_address_line1: string
+              p_address_line2: string
+              p_city: string
+              p_email: string
+              p_expected_total_paise: number
+              p_idempotency_key: string
+              p_landmark: string
+              p_name: string
+              p_notes: string
+              p_payload_hash: string
+              p_phone: string
+              p_postal_code: string
+              p_session_token: string
+              p_state: string
+            }
+            Returns: Json
+          }
       create_product_image_upload_intent: {
         Args: {
           p_declared_mime_type: string
@@ -1250,6 +1388,7 @@ export type Database = {
         Args: {
           p_address_line1: string
           p_address_line2: string
+          p_auth_user_id: string
           p_city: string
           p_email: string
           p_expected_total_paise: number
@@ -1317,6 +1456,10 @@ export type Database = {
       mark_intent_initialization_failed_atomic: {
         Args: { p_intent_id: string }
         Returns: boolean
+      }
+      merge_guest_cart_to_customer_atomic: {
+        Args: { p_auth_user_id: string; p_session_token: string }
+        Returns: Json
       }
       record_razorpay_payment_attempt_atomic: {
         Args: {

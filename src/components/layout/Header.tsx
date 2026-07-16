@@ -12,10 +12,13 @@ import { CartBadge } from '@/features/cart/components/CartBadge'
 import { CartDrawer } from '@/features/cart/components/CartDrawer'
 import type { CartDetail } from '@/features/cart/queries'
 
+import type { User } from '@supabase/supabase-js'
+import { UserIcon } from '@/components/ui/icons'
+
 const iconButton =
   'inline-flex size-11 items-center justify-center rounded-md text-charcoal transition-colors hover:bg-ink/5'
 
-export function Header({ cart }: { cart: CartDetail | null }) {
+export function Header({ cart, user }: { cart: CartDetail | null; user: User | null }) {
   const [navOpen, setNavOpen] = useState(false)
   const [cartOpen, setCartOpen] = useState(false)
 
@@ -56,6 +59,17 @@ export function Header({ cart }: { cart: CartDetail | null }) {
             <Link href="/search" aria-label="Search" className={iconButton}>
               <SearchIcon className="size-5" />
             </Link>
+            
+            {user ? (
+              <Link href="/account" aria-label="Account" className={iconButton}>
+                <UserIcon className="size-5" />
+              </Link>
+            ) : (
+              <Link href="/login" aria-label="Login" className={iconButton}>
+                <UserIcon className="size-5" />
+              </Link>
+            )}
+
             <Link href="/wishlist" aria-label="Wishlist" className={iconButton}>
               <HeartIcon className="size-5" />
             </Link>

@@ -44,7 +44,7 @@ export function ImageUploader({
     }
   }, [previewUrl])
 
-  const stopCamera = () => {
+  function stopCamera() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop())
       streamRef.current = null

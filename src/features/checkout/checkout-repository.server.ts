@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export const checkoutRepository = {
   async createCodOrderAtomic(params: {
+    authUserId: string
     sessionToken: string
     idempotencyKey: string
     payloadHash: string
@@ -27,6 +28,7 @@ export const checkoutRepository = {
     const supabase = createAdminClient()
 
     const { data, error } = await supabase.rpc('create_cod_order_atomic', {
+      p_auth_user_id: params.authUserId,
       p_session_token: params.sessionToken,
       p_idempotency_key: params.idempotencyKey,
       p_payload_hash: params.payloadHash,

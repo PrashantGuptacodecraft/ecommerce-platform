@@ -56,6 +56,10 @@ export async function submitOnlineCheckoutAction(
       return { success: false, error: 'CART_NOT_FOUND' }
     }
 
+    // Enforce authentication for checkout
+    const { requireCustomer } = await import('@/features/auth/server-customer')
+    const { customer } = await requireCustomer()
+
     const {
       name,
       email,
@@ -73,6 +77,7 @@ export async function submitOnlineCheckoutAction(
     } = parsed.data
 
     const initResult = await onlineCheckoutRepository.createRazorpayOrderAtomic({
+      authUserId: customer.auth_user_id,
       sessionToken,
       idempotencyKey,
       payloadHash,

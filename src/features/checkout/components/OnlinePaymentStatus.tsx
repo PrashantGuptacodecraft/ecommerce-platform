@@ -10,30 +10,31 @@ export function OnlinePaymentStatus({ orderNumber }: { orderNumber: string }) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const mountedRef = useRef(true)
 
-  const poll = useCallback(async () => {
-    const result = await checkOrderStatusAction(orderNumber)
-
-    if (!mountedRef.current) return
-
-    if (result.status === 'CONFIRMED') {
-      setStatus('confirmed')
-      router.push(`/checkout/success/${orderNumber}`)
-    } else if (result.status === 'PAYMENT_FAILED') {
-      setStatus('failed')
-    } else {
-      timeoutRef.current = setTimeout(poll, 3000)
-    }
-  }, [orderNumber, router])
-
   useEffect(() => {
     mountedRef.current = true
-    poll()
+
+    const doPoll = async () => {
+      const result = await checkOrderStatusAction(orderNumber)
+
+      if (!mountedRef.current) return
+
+      if (result.status === 'CONFIRMED') {
+        setStatus('confirmed')
+        router.push(`/checkout/success/${orderNumber}`)
+      } else if (result.status === 'PAYMENT_FAILED') {
+        setStatus('failed')
+      } else {
+        timeoutRef.current = setTimeout(doPoll, 3000)
+      }
+    }
+    
+    doPoll()
 
     return () => {
       mountedRef.current = false
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [poll])
+  }, [orderNumber, router])
 
   return (
     <div className="w-full p-8 text-center bg-neutral-50 rounded-md border">

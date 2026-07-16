@@ -50,6 +50,19 @@ export function CheckoutForm({
 
   const isPending = isCodPending || isRzpPending
 
+  const [draft, setDraft] = useState<Record<string, string>>({})
+  const [isDraftLoaded, setIsDraftLoaded] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('checkout_draft')
+    if (saved) {
+      try {
+        setDraft(JSON.parse(saved))
+      } catch (e) {}
+    }
+    setIsDraftLoaded(true)
+  }, [])
+
   useEffect(() => {
     if (codState.success && codState.orderNumber) {
       router.push(`/checkout/success/${codState.orderNumber}`)
@@ -109,18 +122,7 @@ export function CheckoutForm({
     return <OnlinePaymentStatus orderNumber={localOrderNumber} />
   }
 
-  const [draft, setDraft] = useState<Record<string, string>>({})
-  const [isDraftLoaded, setIsDraftLoaded] = useState(false)
 
-  useEffect(() => {
-    const saved = localStorage.getItem('checkout_draft')
-    if (saved) {
-      try {
-        setDraft(JSON.parse(saved))
-      } catch (e) {}
-    }
-    setIsDraftLoaded(true)
-  }, [])
 
   const handleFormChange = (e: React.FormEvent<HTMLFormElement>) => {
     setHasInteracted(true)

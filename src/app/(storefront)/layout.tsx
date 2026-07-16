@@ -6,6 +6,8 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { getCart } from '@/features/cart/queries'
 import { WishlistProvider } from '@/features/wishlist/components/WishlistProvider'
 
+import { createClient } from '@/lib/supabase/server'
+
 /**
  * Storefront chrome for the public route group: announcement bar, header
  * (with mobile drawer nav), footer, and the app-wide toast host. Individual
@@ -13,13 +15,15 @@ import { WishlistProvider } from '@/features/wishlist/components/WishlistProvide
  */
 export default async function StorefrontLayout({ children }: { children: ReactNode }) {
   const cart = await getCart()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <WishlistProvider>
       <ToastProvider>
         <div className="flex min-h-dvh flex-col">
           <AnnouncementBar />
-          <Header cart={cart} />
+          <Header cart={cart} user={user} />
           <main className="flex-1">{children}</main>
           <Footer />
         </div>

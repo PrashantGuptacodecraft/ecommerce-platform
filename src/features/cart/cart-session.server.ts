@@ -30,3 +30,19 @@ export async function getExistingCartSessionId(): Promise<string | null> {
   const cookieStore = await cookies()
   return cookieStore.get(CART_SESSION_COOKIE)?.value || null
 }
+
+export async function rotateCartSessionCookie(newToken: string): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(CART_SESSION_COOKIE, newToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  })
+}
+
+export async function clearCartSessionCookie(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.delete(CART_SESSION_COOKIE)
+}

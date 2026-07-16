@@ -47,6 +47,10 @@ export async function submitCheckoutAction(
       return { success: false, error: 'CART_NOT_FOUND' }
     }
 
+    // Enforce authentication for checkout
+    const { requireCustomer } = await import('@/features/auth/server-customer')
+    const { customer } = await requireCustomer()
+
     const {
       name,
       email,
@@ -64,6 +68,7 @@ export async function submitCheckoutAction(
     } = parsed.data
 
     const result = await checkoutRepository.createCodOrderAtomic({
+      authUserId: customer.auth_user_id,
       sessionToken,
       idempotencyKey,
       payloadHash,

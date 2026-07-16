@@ -29,8 +29,10 @@ export function RazorpayCheckoutButton({
   const onErrorRef = useRef(onError)
   const scriptRef = useRef<HTMLScriptElement | null>(null)
 
-  onSuccessRef.current = onSuccess
-  onErrorRef.current = onError
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+    onErrorRef.current = onError
+  }, [onSuccess, onError])
 
   useEffect(() => {
     const script = document.createElement('script')

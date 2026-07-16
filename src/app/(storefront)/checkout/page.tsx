@@ -3,12 +3,20 @@ import { getShippingSettings } from '@/features/checkout/queries'
 import { CheckoutForm } from '@/features/checkout/components/CheckoutForm'
 import { CheckoutOrderSummary } from '@/features/checkout/components/CheckoutOrderSummary'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'Checkout | STUDIO NOIR',
 }
 
 export default async function CheckoutPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?next=/checkout')
+  }
+
   const cart = await getCart()
 
   if (!cart || cart.items.length === 0) {
