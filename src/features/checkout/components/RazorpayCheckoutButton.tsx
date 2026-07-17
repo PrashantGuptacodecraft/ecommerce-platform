@@ -57,7 +57,7 @@ export function RazorpayCheckoutButton({
       key: orderData.keyId,
       amount: orderData.amountPaise,
       currency: orderData.currency,
-      name: 'Studio Noir',
+      name: 'RK VASTRAM',
       description: 'Order Payment',
       order_id: orderData.razorpayOrderId,
       prefill: {

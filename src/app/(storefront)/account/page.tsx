@@ -1,7 +1,7 @@
 import { requireCustomer } from '@/features/auth/server-customer'
 
 export const metadata = {
-  title: 'Account Summary | Studio Noir',
+  title: 'Account Summary | RK VASTRAM',
 }
 
 export default async function AccountPage() {

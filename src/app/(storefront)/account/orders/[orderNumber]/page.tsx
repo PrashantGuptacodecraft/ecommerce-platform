@@ -5,7 +5,7 @@ import { formatPaise } from '@/lib/utilities/money'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Order Details | Studio Noir',
+  title: 'Order Details | RK VASTRAM',
 }
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ orderNumber: string }> }) {

@@ -9,8 +9,8 @@
  * See docs/PROJECT_BRIEF.md §"Brand details" and docs/DECISIONS.md (#1).
  */
 export const brand = {
-  name: 'STUDIO NOIR',
-  shortName: 'Studio Noir',
+  name: 'RK VASTRAM',
+  shortName: 'RK Vastram',
   tagline: 'Considered essentials, quietly premium.',
   description:
     'A refined, mobile-first clothing store — modern silhouettes in a restrained neutral palette.',

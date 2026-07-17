@@ -7,7 +7,7 @@
  * object here means non-Tailwind consumers (inline styles, motion, canvas,
  * JSON-LD theming) read the same numbers as the utility classes.
  *
- * Palette: refined neutral fashion range ("STUDIO NOIR" placeholder) plus a
+ * Palette: refined neutral fashion range ("RK VASTRAM" placeholder) plus a
  * single restrained warm-taupe accent — see docs/DECISIONS.md (#1).
  */
 export const designTokens = {

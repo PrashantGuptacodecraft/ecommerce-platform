@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { formatPaise } from '@/lib/utilities/money'
 
 export const metadata = {
-  title: 'My Orders | Studio Noir',
+  title: 'My Orders | RK VASTRAM',
 }
 
 export default async function OrdersPage() {

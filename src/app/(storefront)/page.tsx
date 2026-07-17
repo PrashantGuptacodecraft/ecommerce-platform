@@ -1,17 +1,14 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { Container } from '@/components/ui/Container'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { FadeIn } from '@/components/motion/FadeIn'
-import { SlideUp } from '@/components/motion/SlideUp'
 import { RevealOnScroll } from '@/components/motion/RevealOnScroll'
 import { BagIcon, BoxIcon, CheckIcon } from '@/components/ui/icons'
 import { brand } from '@/config/brand'
 import { FeaturedProducts } from '@/components/storefront/FeaturedProducts'
 import { NewArrivals } from '@/components/storefront/NewArrivals'
 import { CategoryGrid } from '@/components/storefront/CategoryGrid'
+import { VideoHero } from '@/components/storefront/VideoHero'
 
 const reassurance = [
   {
@@ -61,82 +58,50 @@ function CategoriesSkeleton() {
 export default function HomePage() {
   return (
     <div>
-      {/* Hero */}
-      <section className="border-b border-fog">
-        <Container>
-          <div className="flex min-h-[70vh] flex-col items-start justify-center gap-6 py-20">
-            <FadeIn>
-              <Badge variant="outline">New season · Considered essentials</Badge>
-            </FadeIn>
-            <SlideUp>
-              <h1 className="max-w-3xl font-serif text-4xl leading-[1.05] text-ink sm:text-5xl lg:text-6xl">
-                Quietly premium clothing, made to be lived in.
-              </h1>
-            </SlideUp>
-            <FadeIn delay={0.1}>
-              <p className="max-w-xl text-base text-slate sm:text-lg">
-                {brand.description} Explore a tightly edited range in a restrained, neutral palette.
-              </p>
-            </FadeIn>
-            <FadeIn delay={0.2}>
-              <div className="flex flex-wrap gap-3">
-                <Link href="/shop">
-                  <Button size="lg" className="px-7">
-                    Shop the collection
-                  </Button>
-                </Link>
-                <Link href="/about">
-                  <Button variant="outline" size="lg">
-                    Our story
-                  </Button>
-                </Link>
-              </div>
-            </FadeIn>
-          </div>
-        </Container>
-      </section>
+      {/*
+        Sticky stacking panels — the exact technique from the reference site.
+        Panel 1 (hero video) is sticky at z-1, Panel 2 (content) slides OVER
+        it at z-2 as the user scrolls. On mobile (<lg) they stack normally.
+      */}
+      <div className="relative">
+        {/* Panel 1: Video Hero — sticky, stays pinned behind */}
+        <div
+          className="relative lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden"
+          style={{ zIndex: 1 }}
+        >
+          <VideoHero />
+        </div>
 
-      {/* Featured Collection — real data from Supabase */}
-      <section className="py-20">
-        <Container>
-          <RevealOnScroll>
-            <div className="mb-10 flex items-end justify-between gap-4">
-              <h2 className="font-serif text-2xl text-ink sm:text-3xl">Featured Collection</h2>
-              <Link
-                href="/shop?sort=featured"
-                className="text-sm text-slate underline-offset-4 hover:text-ink hover:underline"
-              >
-                View all
-              </Link>
-            </div>
-          </RevealOnScroll>
-          <Suspense fallback={<ProductsSkeleton />}>
-            <FeaturedProducts limit={4} />
-          </Suspense>
-        </Container>
-      </section>
+        {/* Panel 2: Content — slides over the hero */}
+        <div
+          className="relative lg:sticky lg:top-0 lg:min-h-screen"
+          style={{ zIndex: 2 }}
+        >
+          {/* Featured Collection */}
+          <section className="bg-paper py-20 sm:py-28 lg:flex lg:min-h-screen lg:items-center">
+            <Container>
+              <RevealOnScroll>
+                <div className="mb-10 flex items-end justify-between gap-4">
+                  <h2 className="font-serif text-2xl text-ink sm:text-3xl">Featured Collection</h2>
+                  <Link
+                    href="/shop?sort=featured"
+                    className="text-sm text-slate underline-offset-4 hover:text-ink hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+              </RevealOnScroll>
+              <Suspense fallback={<ProductsSkeleton />}>
+                <FeaturedProducts limit={4} />
+              </Suspense>
+            </Container>
+          </section>
+        </div>
+      </div>
 
-      {/* Shop by category — real data from Supabase */}
-      <section className="border-y border-fog bg-white py-20">
-        <Container>
-          <RevealOnScroll>
-            <div className="mb-10 flex items-end justify-between gap-4">
-              <h2 className="font-serif text-2xl text-ink sm:text-3xl">Shop by category</h2>
-              <Link
-                href="/shop"
-                className="text-sm text-slate underline-offset-4 hover:text-ink hover:underline"
-              >
-                View all
-              </Link>
-            </div>
-          </RevealOnScroll>
-          <Suspense fallback={<CategoriesSkeleton />}>
-            <CategoryGrid />
-          </Suspense>
-        </Container>
-      </section>
 
-      {/* New Arrivals — real data from Supabase */}
+
+      {/* New Arrivals */}
       <section className="py-20">
         <Container>
           <RevealOnScroll>

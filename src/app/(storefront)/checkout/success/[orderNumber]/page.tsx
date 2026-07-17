@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { formatPaise } from '@/lib/utilities/money'
 
 export const metadata = {
-  title: 'Order Confirmation | STUDIO NOIR',
+  title: 'Order Confirmation | RK VASTRAM',
 }
 
 export default async function OrderSuccessPage({
