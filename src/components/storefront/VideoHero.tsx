@@ -50,8 +50,7 @@ export function VideoHero() {
           preload="auto"
           poster="/videos/hero-poster.jpg"
         >
-          <source src="/videos/hero.webm" type="video/webm" />
-          <source src="/videos/hero.mp4" type="video/mp4" />
+          <source src="/videos/hero (2).mp4" type="video/mp4" />
         </video>
       </motion.div>
 

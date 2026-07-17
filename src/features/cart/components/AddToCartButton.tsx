@@ -24,7 +24,7 @@ function SubmitButton({ disabled, isSuccess }: { disabled: boolean; isSuccess: b
     <Button
       type="submit"
       disabled={disabled || pending}
-      className="relative w-full h-14 text-lg overflow-hidden"
+      className="relative w-full h-14 text-base sm:text-lg overflow-hidden"
       data-testid="add-to-cart-button"
     >
       <AnimatePresence mode="wait">
@@ -34,7 +34,7 @@ function SubmitButton({ disabled, isSuccess }: { disabled: boolean; isSuccess: b
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="absolute inset-0 flex items-center justify-center gap-2 bg-green-600 text-white"
+            className="absolute inset-0 flex items-center justify-center gap-2 bg-green-600 text-white whitespace-nowrap"
           >
             <CheckIcon className="size-5" />
             <span>Added to Cart</span>
@@ -45,7 +45,7 @@ function SubmitButton({ disabled, isSuccess }: { disabled: boolean; isSuccess: b
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center whitespace-nowrap"
           >
             Adding...
           </motion.span>
@@ -55,7 +55,7 @@ function SubmitButton({ disabled, isSuccess }: { disabled: boolean; isSuccess: b
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center whitespace-nowrap"
           >
             Add to Cart
           </motion.span>

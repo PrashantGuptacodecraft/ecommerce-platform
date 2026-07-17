@@ -42,6 +42,11 @@ export function getProductImageUrl(storagePath: string | null | undefined): stri
   // Reject query strings or fragment identifiers.
   if (trimmed.includes('?') || trimmed.includes('#')) return null
 
+  // Support local development images placed in the public directory
+  if (trimmed.startsWith('local/')) {
+    return `/${trimmed}`
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!supabaseUrl) return null
 
